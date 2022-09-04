@@ -3,7 +3,7 @@ const messageToRoblox = require("./../robloxMessageAPI")
 const Ban = require("./../models/Ban")
 const ServerBan = require("./../models/ServerBan")
 
-const REFRESH_TIME = 1000 * 60 * 60 // 1 hour
+const REFRESH_TIME = 1000 * 120
 
 module.exports = (client) => {
   const check = async() => {
