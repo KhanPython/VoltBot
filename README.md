@@ -12,5 +12,5 @@
 </div>
 
 
-### An **experimental** admin commands discord bot for Roblox experiences using discord.js and OpenCloudAPI with MessagingService, hosted by [Replit](https://replit.com/@pythonlittlegam/VOLT-Beta#index.js).
+### An **experimental** admin commands discord.js bot for Roblox experiences that uses OpenCloudAPI and MessagingService, hosted on [Replit](https://replit.com/@pythonlittlegam/VOLT-Beta#index.js).
 
