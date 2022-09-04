@@ -10,11 +10,11 @@ const mongoUri = process.env.mongoDBConnectionString
 const app = express()
 
 app.listen(3000, () => {
-  console.log("Starting the project")
+  console.log("Booting up project")
 })
 
 app.get("/", (req, res) => {
-  res.send("Test")
+  res.send("")
 })
 
 // Test
