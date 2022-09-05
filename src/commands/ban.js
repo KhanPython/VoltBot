@@ -48,11 +48,8 @@ module.exports = {
     const duration = args[2] 
 
     // Confirm whether a user with the passed Id exists
-    const userInfo = robloxUserInfo.UserInfoById(userId).then(responseData => {
-      console.log(responseData.status)
-      return responseData
-    })
-
+    const userInfo = robloxUserInfo.UserInfoById(userId).then((responseData) => responseData)
+    console.log(userInfo.status)
 
     // Checks whether the passed userId is already listed     
     const result = await Ban.findOne( {userId: userId} ).exec()
