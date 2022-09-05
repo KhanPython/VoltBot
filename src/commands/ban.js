@@ -48,10 +48,10 @@ module.exports = {
     const duration = args[2] 
 
     // Confirm whether a user with the passed Id exists
-    let userInfo = robloxUserInfo.UserInfoById(userId).then((resdata) => {
-      return resdata
-    })
-    console.log(userInfo.status)
+    // let userInfo = robloxUserInfo.UserInfoById(userId).then((resdata) => {
+    //   return resdata
+    // })
+    // console.log(userInfo.status)
 
     // Checks whether the passed userId is already listed     
     const result = await Ban.findOne( {userId: userId} ).exec()
@@ -99,7 +99,7 @@ module.exports = {
   
       // Return embed response
       return new discord.MessageEmbed()
-        .setTitle(`Ban user: ${userInfo.data["name"]}`)
+        .setTitle(`Ban user: ${userId}`)
         .setColor(responseData.success ? "GREEN" : "RED")
         .setDescription(responseData.success ? `Player prompted to be banned until ${expires}` : "Unable to ban the player")
         .addField("Ban reason:", reason)
