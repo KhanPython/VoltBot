@@ -1,7 +1,7 @@
 
 
 <div align="center">
-    <img alt="platform" src=" https://camo.githubusercontent.com/27d9a984b7c15ec14322b53f221c964e8218459b0209e7f8f6fb3d68c5d80351/68747470733a2f2f696d672e736869656c64732e696f2f7374617469632f76313f7374796c653d666f722d7468652d6261646765266d6573736167653d526f626c6f7826636f6c6f723d303030303030266c6f676f3d526f626c6f78266c6f676f436f6c6f723d464646464646266c6162656c3d" >
+    <img alt="platform" src="https://camo.githubusercontent.com/27d9a984b7c15ec14322b53f221c964e8218459b0209e7f8f6fb3d68c5d80351/68747470733a2f2f696d672e736869656c64732e696f2f7374617469632f76313f7374796c653d666f722d7468652d6261646765266d6573736167653d526f626c6f7826636f6c6f723d303030303030266c6f676f3d526f626c6f78266c6f676f436f6c6f723d464646464646266c6162656c3d">
     <h1>VOLT Beta</h1>
     <img src="./assets/VoltLogo.png" width="300" height="300" alt="blueprint illustration">
     <p>
@@ -14,4 +14,23 @@
 
 
 ### A local **experimental** admin commands discord.js bot for Roblox experiences that uses OpenCloudAPI and MessagingService, hosted on [Replit](https://replit.com/@pythonlittlegam/VOLT-Beta#index.js).
-
+#
+## Required Secrets:
+* A mongoDB [connection string](https://www.mongodb.com/docs/compass/current/connect/)
+* Discord [bot token](https://docs.discordbotstudio.org/setting-up-dbs/finding-your-bot-token) 
+* Discord [server Id](https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID-)
+* Roblox experience universe ID
+* Roblox [opencloud API key](https://developer.roblox.com/en-us/articles/open-cloud)
+#
+## To use:
+* Fork the [Replit](https://replit.com/@pythonlittlegam/VOLT-Beta#index.js) repo
+* Start a mongoDB project and create a new cluster
+* Generate the aforementioned secrets via the forked Replit repo
+* In your Roblox experience, subsribe to any of the given topic name; [example usage](example/ExampleUsage.lua)   
+#
+## Available Roblox MessagingService topics (**Under construction**):
+* `DiscordKick` 
+* `DiscordBan`
+* `DiscordUnban`
+* `DiscordServerBan`
+* `DiscordServerUnBan`
