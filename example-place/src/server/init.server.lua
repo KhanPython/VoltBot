@@ -7,8 +7,8 @@ local Players = game:GetService("Players")
 local CollectionHandler = require(script.CollectionHandler)
 local DecodeDate = require(script.DecodeDate)
 
-function kickPlayer(userId: number, reason: string)
-	assert(userId ~= nil and typeof(userId) == "number", "userId field is missing or of incorrect type")
+function kickPlayer(userId: string, reason: string)
+	assert(userId ~= nil and typeof(userId) == "string", "userId field is missing or of incorrect type")
 	assert(reason ~= nil and typeof(reason) == "string", "reason field is missing or of incorrect type")
 
 	for _, player in pairs(Players:GetPlayers()) do
@@ -41,6 +41,15 @@ MessagingService:SubscribeAsync("ServerBan", function(msg)
 	if passedJobId == game.JobId then
 		kickPlayer(passedUserId, passedReason)
 	end
+end)
+
+MessagingService:SubscribeAsync("DiscordKick", function(msg)
+	local decodedData = HTTPService:JSONDecode(msg.Data)
+	local passedUserId = decodedData.UserId
+	local passedReason = decodedData.Reason
+
+	assert(passedReason ~= nil and passedUserId ~= nil, "Required data is missing, unable to execute the command")
+	kickPlayer(passedUserId, passedReason)
 end)
 
 Players.PlayerAdded:Connect(function(player)
