@@ -7,7 +7,6 @@ exports.UserInfoById = async function UserInfoById(userId) {
             return {status: '**Success**' , success: true , data: response} 
         })
         .catch(err => {
-            console.log(err.response.status)
             if (err.response.status == 404) return {status: '**Error:** Invalid user id.'}  
         })
 

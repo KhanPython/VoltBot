@@ -26,7 +26,6 @@ exports.MessageSend = async function MessageSend(message, universeId, topic) {
         if (err.response.status == 500) return {status: '**Error:** Server internal error / Unknown error.'}
         if (err.response.status == 400){
             if (err.response.data == "requestMessage cannot be longer than 1024 characters. (Parameter 'requestMessage')") return {status: '**Error:** The request message cannot be longer then 1024 characters long.'}
-            console.log(err.response.data)
         }
     })
 
