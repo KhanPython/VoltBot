@@ -4,6 +4,7 @@ const axios = require('axios').default
 exports.UserInfoById = async function UserInfoById(userId) {
     const resp = await axios.get(`https://users.roblox.com/v1/users/${userId}/`)
         .then(response => {
+            console.log(response)
             return {status: '**Success**', success: true, data: response} 
         })
         .catch(err => {
