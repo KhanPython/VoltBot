@@ -47,7 +47,9 @@ module.exports = {
     const duration = args[2] 
 
     // Confirm whether a user with the passed Id exists
-    const userInfo = robloxUserInfo.UserInfoById(userId)
+    const userInfo = robloxUserInfo.UserInfoById(userId).then(async responseData => {
+      return responseData
+    })
     console.log(userInfo.status)
     if (!userInfo.success) {
       return userInfo.status
