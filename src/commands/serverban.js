@@ -13,7 +13,7 @@ module.exports = {
     description: "Server bans the player from server by UserId with for an optional period",
 
     slash: "both",
-    testOnly: true,
+    testOnly: false,
 
     permissions: ['ADMINISTRATOR'],
     ephemeral: false,

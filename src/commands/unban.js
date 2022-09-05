@@ -11,7 +11,7 @@ module.exports = {
   description: "Bans the player from the experience by UserId",
 
   slash: "both",
-  testOnly: true,
+  testOnly: false,
 
   permissions: ['ADMINISTRATOR'],
   ephemeral: false,

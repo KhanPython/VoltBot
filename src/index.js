@@ -39,13 +39,6 @@ client.on("ready", () => {
   }
   ).setDefaultPrefix(':')
 
-  client.user?.setPresence({
-    status: 'online',
-    activities: {
-      name: "EXPERIMENTAL"
-    }
-  })
-
   console.log("Bot is now online!")
 })
 

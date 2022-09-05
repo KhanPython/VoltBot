@@ -12,7 +12,7 @@ module.exports = {
     description: "Kicks the player from server by UserId",
 
     slash: "both",
-    testOnly: true,
+    testOnly: false,
 
     permissions: ['ADMINISTRATOR'],
     ephemeral: false,

@@ -13,7 +13,7 @@ module.exports = {
     description: "Unbans the player from the optionally specified server",
 
     slash: "both",
-    testOnly: true,
+    testOnly: false,
 
     permissions: ['ADMINISTRATOR'],
     ephemeral: false,
