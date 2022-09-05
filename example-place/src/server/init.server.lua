@@ -44,7 +44,9 @@ MessagingService:SubscribeAsync("ServerBan", function(msg)
 end)
 
 Players.PlayerAdded:Connect(function(player)
-	--
+	--[[
+		Search for whether the user is banned, if so, then kick them with a specified reason and duration of the ban
+	]]
 	local bansQuery = {
 		["userId"] = player.UserId,
 	}
@@ -52,7 +54,6 @@ Players.PlayerAdded:Connect(function(player)
 		CollectionHandler.collections.BansCollection,
 		bansQuery,
 		function(document)
-			assert(document ~= nil, "Error, document not found")
 			player:Kick(
 				"You were banned due to:"
 					.. document["reason"]
@@ -62,7 +63,9 @@ Players.PlayerAdded:Connect(function(player)
 		end
 	)
 
-	--
+	--[[
+		 Search for whether the user is banned in the given server (by JobId), if so, then kick them with a specified reason and duration of the server ban
+	]]
 	local serverBansQuery = {
 		["userId"] = player.UserId,
 		["jobId"] = game.JobId,

@@ -1,3 +1,16 @@
+--[[ 
+    Unwraps the passed ISO Date <String> into a dictionary following the format: 
+    {
+        year, 
+        month, 
+        day, 
+        hour, 
+        min, 
+        sec, 
+        milliseconds, 
+        sinceEpoch
+    }
+]]
 function decodeDate(str: string)
 	assert(str ~= nil and typeof(str) == "string", "Missing argument or of incorrect type!")
 

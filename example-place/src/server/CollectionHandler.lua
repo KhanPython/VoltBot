@@ -3,10 +3,10 @@ local DecodeDate = require(script.Parent.DecodeDate)
 local module = {}
 
 --[[
-    **
+
      This example uses Rongo as a MongoDB API wrapper of choice 
      For more info visit: https://devforum.roblox.com/t/rongo-mongodb-api-wrapper-for-roblox/1755615)
-    **
+
 ]]
 local Rongo = require(script.Parent.Rongo)
 local Client = Rongo.new("data-haaxe", "yF2sORk5XNr5bXwv5ZxIAyJF1gpsIOVHSjOrD7f3oOOIbkfNuEQHZL0xFurZuCkF") -- Replace these with the ID and key you stored earlier!
@@ -19,7 +19,11 @@ module.collections = {
 }
 --
 
--- If 'expires' entry is expired, then delete the document, else execute a callback
+--[[ 
+
+    If 'expires' entry is expired in passed query then delete the document from collection, else execute a callback
+
+]]
 function module.updateDocumentOnExpiration(collection, query, expiredFunction)
 	assert(collection ~= nil, "Missing collection!")
 	assert(query ~= nil and typeof(query) == "table", "Missing query or of incorrect type!")
