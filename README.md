@@ -18,7 +18,6 @@
 ## Required Secrets:
 * A mongoDB [connection string](https://www.mongodb.com/docs/compass/current/connect/)
 * Discord [bot token](https://docs.discordbotstudio.org/setting-up-dbs/finding-your-bot-token) 
-* Discord [server Id](https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID-)
 * Roblox experience universe ID
 * Roblox [opencloud API key](https://developer.roblox.com/en-us/articles/open-cloud)
 #
