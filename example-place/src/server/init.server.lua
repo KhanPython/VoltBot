@@ -1,7 +1,10 @@
--- Server-side code
+-- Services
 local MessagingService = game:GetService("MessagingService")
 local HTTPService = game:GetService("HttpService")
 local Players = game:GetService("Players")
+
+-- MongoDB API wrapper of choice
+local Rongo = require(script.Parent.Rongo)
 
 local TOPIC_NAME = "Kick"
 
@@ -14,7 +17,7 @@ MessagingService:SubscribeAsync(TOPIC_NAME, function(msg)
 
 	for _, player in pairs(Players:GetPlayers()) do
 		if player.UserId == tonumber(passedUserId) then
-			player:Kick("You have been kicked from this server: "..passedReason)
+			player:Kick("You have been kicked from this server: " .. passedReason)
 			return
 		end
 	end
