@@ -46,7 +46,7 @@ module.exports = {
     const reason = args[1]
     const duration = args[2] 
 
-    const userInfo = robloxUserInfo.RetrieveUserInformationById(userId).then(async responseData => {
+    const userInfo = robloxUserInfo.UserInfoById(userId).then(async responseData => {
         console.log(responseData)
     })
 
