@@ -5,7 +5,6 @@ const wokcommands = require("wokcommands")
 const path = require('path')
 
 const mongoUri = process.env.mongoDBConnectionString
-const serverId = process.env.discordServerId
 const discordToken = process.env.discordToken
 
 // Express
@@ -32,7 +31,6 @@ client.on("ready", () => {
   new wokcommands(client, {
     commandsDir: path.join(__dirname, "commands"),
     featuresDir: path.join(__dirname, "features"),
-    testServers: serverId,
     mongoUri: mongoUri,
     dbOptions: {
       keepAlive: true
