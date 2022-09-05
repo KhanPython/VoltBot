@@ -2,6 +2,7 @@ const discord = require("discord.js")
 const messageToRoblox = require("./../robloxMessageAPI")
 const robloxUserInfo = require("./../robloxUserInfo")
 const Ban = require("./../models/Ban")
+const { response } = require("express")
 
 const UNIVERSE_ID = process.env.universeID
 const TOPIC = "DiscordKick"
@@ -48,13 +49,13 @@ module.exports = {
 
     // Confirm whether a user with the passed Id exists
     const userInfo = robloxUserInfo.UserInfoById(userId).then(responseData => {
+      console.log(responseData.status)
       return responseData
     })
-    console.log(userInfo["status"])
+
 
     // Checks whether the passed userId is already listed     
     const result = await Ban.findOne( {userId: userId} ).exec()
-
     if (result) {
       return `UserId: ${userId} is already banned from the experience.`
     }
