@@ -50,7 +50,7 @@ module.exports = {
     const userInfo = robloxUserInfo.UserInfoById(userId).then(async responseData => {
         return responseData
     })
-    console.log(responseData)
+    console.log(responseData.status)
     // if (!userInfo.success) {
     //   return userInfo.status
     // }
