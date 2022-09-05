@@ -50,9 +50,10 @@ module.exports = {
     const userInfo = robloxUserInfo.UserInfoById(userId).then(async responseData => {
         return responseData
     })
-    if (!userInfo.success) {
-      return userInfo.status
-    }
+    console.log(responseData)
+    // if (!userInfo.success) {
+    //   return userInfo.status
+    // }
 
     // Checks whether the passed userId is already listed     
     const result = await Ban.findOne( {userId: userId} ).exec()
