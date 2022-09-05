@@ -9,6 +9,7 @@
         <img alt="code size" src="https://img.shields.io/github/languages/code-size/KhanPython/Volt-beta">
         <img alt="issues" src="https://img.shields.io/github/issues/KhanPython/Volt-beta" >
         <img alt="issues" src="https://img.shields.io/github/last-commit/KhanPython/Volt-Beta" >
+        <img alt="license" src="https://img.shields.io/github/license/KhanPython/VOLT-Beta" >
     </p>
 </div>
 
