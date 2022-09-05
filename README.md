@@ -28,7 +28,7 @@
 * Start a mongoDB project and create a new cluster
 * Generate the aforementioned secrets via the forked Replit repo
 * In your Roblox experience, subsribe to any of the given topic names; [example usage](example/ExampleUsage.lua)
-* Run `node init` in Replit CLI (Shell) to install all of the required dependencies
+* Run `npm install` in Replit CLI (Shell) to install all of the required dependencies
 * Run the forked Replit repository 
 * Execute the desired discord command, i.e: 
   #### ``` /ban `<userId>`, `<reason>`, `<duration>`* ``` 
