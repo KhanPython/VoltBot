@@ -13,7 +13,9 @@
 </div>
 
 
-### A local **experimental** admin commands discord.js bot for Roblox experiences that uses OpenCloudAPI and MessagingService, hosted on [Replit](https://replit.com/@pythonlittlegam/VOLT-Beta#index.js).
+###### Powered by [WOKCommands](https://docs.wornoffkeys.com/)
+### A local **experimental** admin commands discord.js bot for Roblox experiences that uses OpenCloudAPI and MessagingService, hosted on [Replit](https://replit.com/@pythonlittlegam/VOLT-Beta#index.js). 
+
 #
 ## Required Secrets:
 * A mongoDB [connection string](https://www.mongodb.com/docs/compass/current/connect/)
@@ -27,11 +29,16 @@
 * Generate the aforementioned secrets via the forked Replit repo
 * In your Roblox experience, subsribe to any of the given topic names; [example usage](example/ExampleUsage.lua)
 * Run the forked Replit repository 
-* Execute the desired discord command, i.e /ban `userId`, `reason`, `duration`  
+* Execute the desired discord command, i.e: 
+  > */ban `<userId>`, `<reason>`, `<duration>`*  
 #
 ## Available Roblox MessagingService topics (**Under construction**):
-* `DiscordKick` 
-* `DiscordBan`
-* `DiscordUnban`
-* `DiscordServerBan`
-* `DiscordServerUnBan`
+  > `DiscordKick` 
+  >
+  > `DiscordBan`
+  >
+  > `DiscordUnban`
+  >
+  > `DiscordServerBan`
+  >
+  > `DiscordServerUnBan`
