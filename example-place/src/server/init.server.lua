@@ -13,7 +13,7 @@ function kickPlayer(userId: string, reason: string)
 
 	for _, player in pairs(Players:GetPlayers()) do
 		if player.UserId == tonumber(userId) then
-			player:Kick("You have been banned from this server: " .. reason)
+			player:Kick(reason)
 			return
 		end
 	end
@@ -63,10 +63,11 @@ Players.PlayerAdded:Connect(function(player)
 		CollectionHandler.collections.BansCollection,
 		bansQuery,
 		function(document)
-			player:Kick(
-				"You were banned due to:"
+			kickPlayer(
+				player,
+				" Ban: "
 					.. document["reason"]
-					.. " time remaining: "
+					.. ". Time remaining: "
 					.. (DecodeDate(document["expires"]).sinceEpoch - os.time())
 			)
 		end
@@ -84,10 +85,11 @@ Players.PlayerAdded:Connect(function(player)
 		serverBansQuery,
 		function(document)
 			assert(document ~= nil, "Error, document not found")
-			player:Kick(
-				"You were server-banned due to:"
+			kickPlayer(
+				player,
+				" Server ban: "
 					.. document["reason"]
-					.. " time remaining: "
+					.. ". Time remaining: "
 					.. (DecodeDate(document["expires"]).sinceEpoch - os.time())
 			)
 		end

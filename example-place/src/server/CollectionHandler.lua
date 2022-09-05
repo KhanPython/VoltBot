@@ -9,7 +9,7 @@ local module = {}
 
 ]]
 local Rongo = require(script.Parent.Rongo)
-local Client = Rongo.new("data-haaxe", "yF2sORk5XNr5bXwv5ZxIAyJF1gpsIOVHSjOrD7f3oOOIbkfNuEQHZL0xFurZuCkF") -- Replace these with the ID and key you stored earlier!
+local Client = Rongo.new("API-NAME", "API-KEY") -- Replace these with the ID and key you stored earlier!
 local Cluster = Client:GetCluster("Cluster0") -- Replace this with the name of your cluster (usually "Cluster0")
 local Database = Cluster:GetDatabase("test") -- Replace this with the name of your database!
 
