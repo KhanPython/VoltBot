@@ -1,5 +1,6 @@
 const discord = require("discord.js")
 const messageToRoblox = require("./../robloxMessageAPI")
+const robloxUserInfo = require("./../robloxUserInfo")
 const Ban = require("./../models/Ban")
 
 const UNIVERSE_ID = process.env.universeID
@@ -44,6 +45,10 @@ module.exports = {
     const userId = args[0]
     const reason = args[1]
     const duration = args[2] 
+
+    const userInfo = UserInfoById.RetrieveUserInformationById(userId).then(async responseData => {
+      
+    })
 
     // Checks whether the passed userId is already listed     
     const result = await Ban.findOne( {userId: userId} ).exec()

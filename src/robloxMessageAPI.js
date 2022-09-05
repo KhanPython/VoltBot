@@ -1,17 +1,6 @@
 const axios = require('axios').default
 
 
-// exports.RetrieveUserInformationById = async function RetrieveUserInformationById(userId) {
-//     await axios.get(`https://users.roblox.com/v1/users/${userId}/`)
-//     .then(response => {
-
-//     })
-//     .catch(err => {
-//         console.log(err.response.status)
-//         if (err.response.status == 404) return `**Error:** Invalid user id ` identification`
-//     })
-// }
-
 // Returns a status string
 exports.MessageSend = async function MessageSend(message, universeId, topic) {
     const resp = await axios.post(
