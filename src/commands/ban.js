@@ -46,8 +46,8 @@ module.exports = {
     const reason = args[1]
     const duration = args[2] 
 
-    const userInfo = UserInfoById.RetrieveUserInformationById(userId).then(async responseData => {
-      
+    const userInfo = robloxUserInfo.RetrieveUserInformationById(userId).then(async responseData => {
+        console.log(responseData)
     })
 
     // Checks whether the passed userId is already listed     
