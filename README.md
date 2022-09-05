@@ -14,7 +14,7 @@
 
 
 ###### Powered by [WOKCommands](https://docs.wornoffkeys.com/)
-### A local **experimental** admin commands discord.js bot for Roblox experiences that uses OpenCloudAPI and MessagingService, hosted on [Replit](https://replit.com/@pythonlittlegam/VOLT-Beta#index.js). 
+### A private **experimental** admin commands discord.js bot for Roblox experiences that uses OpenCloudAPI and MessagingService, hosted on [Replit](https://replit.com/@pythonlittlegam/VOLT-Beta#index.js). 
 
 #
 ## Required Secrets:

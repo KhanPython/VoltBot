@@ -3,6 +3,7 @@ const express = require("express")
 const discord = require("discord.js")
 const wokcommands = require("wokcommands")
 const path = require('path')
+const { on } = require("events")
 
 const mongoUri = process.env.mongoDBConnectionString
 const discordToken = process.env.discordToken
@@ -37,6 +38,14 @@ client.on("ready", () => {
     }
   }
   ).setDefaultPrefix(':')
+
+  client.user?.setPresence({
+    status: 'online',
+    activities: {
+      name: "EXPERIMENTAL"
+    }
+  })
+
   console.log("Bot is now online!")
 })
 

@@ -14,7 +14,7 @@ module.exports = (client) => {
     // Remove expired bans
     await Ban.deleteMany(query)
     .then(() => {
-      console.log("Deleted expired bans")
+      // console.log("Deleted expired bans")
     })
     .catch((err) => {
       console.log(`Unable to delete expired bans: ${err}`)
@@ -23,7 +23,7 @@ module.exports = (client) => {
     // Remove expired server bans
     await ServerBan.deleteMany(query)
     .then(() => {
-      console.log("Deleted expired server bans")
+      // console.log("Deleted expired server bans")
     })
     .catch((err) => {
       console.log(`Unable to delete expired server bans: ${err}`)
