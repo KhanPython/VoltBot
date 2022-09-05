@@ -815,22 +815,17 @@ local MessagingService = game:GetService("MessagingService")
 local HTTPService = game:GetService("HttpService")
 local Players = game:GetService("Players")
 
--- MongoDB API wrapper of choice
-local Rongo = require(script.Rongo)
-local Client = Rongo.new("data-haaxe", "yF2sORk5XNr5bXwv5ZxIAyJF1gpsIOVHSjOrD7f3oOOIbkfNuEQHZL0xFurZuCkF") -- Replace these with the ID and key you stored earlier!
-local Cluster = Client:GetCluster("Cluster0") -- Replace this with the name of your cluster (usually "Cluster0")
-local Database = Cluster:GetDatabase("test") -- Replace this with the name of your database!
+-- libs
+local CollectionHandler = require(script.CollectionHandler)
+local DecodeDate = require(script.DecodeDate)
 
-local BansCollection = Database:GetCollection("bans") -- Replace this with the name of your collection inside your database
---
-
-function kickPlayer(userId: number, reason: string)
-	assert(userId ~= nil and typeof(userId) == "number", "userId field is missing or of incorrect type")
+function kickPlayer(userId: string, reason: string)
+	assert(userId ~= nil and typeof(userId) == "string", "userId field is missing or of incorrect type")
 	assert(reason ~= nil and typeof(reason) == "string", "reason field is missing or of incorrect type")
 
 	for _, player in pairs(Players:GetPlayers()) do
 		if player.UserId == tonumber(userId) then
-			player:Kick("You have been banned from this server: " .. reason)
+			player:Kick(reason)
 			return
 		end
 	end
@@ -845,13 +840,72 @@ MessagingService:SubscribeAsync("DiscordBan", function(msg)
 	kickPlayer(passedUserId, passedReason)
 end)
 
-Players.PlayerAdded:Connect(function(player)
-	local doc = BansCollection:FindOne({ ["userId"] = player.UserId })
-	if not doc then
-		return
-	end
+MessagingService:SubscribeAsync("ServerBan", function(msg)
+	local decodedData = HTTPService:JSONDecode(msg.Data)
+	local passedUserId = decodedData.UserId
+	local passedReason = decodedData.Reason
+	local passedJobId = decodedData.JobId
 
-	print(doc{["expires"]})
+	assert(
+		passedReason ~= nil and passedUserId ~= nil and passedJobId ~= nil,
+		"Required data is missing, unable to execute the command"
+	)
+	if passedJobId == game.JobId then
+		kickPlayer(passedUserId, passedReason)
+	end
+end)
+
+MessagingService:SubscribeAsync("DiscordKick", function(msg)
+	local decodedData = HTTPService:JSONDecode(msg.Data)
+	local passedUserId = decodedData.UserId
+	local passedReason = decodedData.Reason
+
+	assert(passedReason ~= nil and passedUserId ~= nil, "Required data is missing, unable to execute the command")
+	kickPlayer(passedUserId, passedReason)
+end)
+
+Players.PlayerAdded:Connect(function(player)
+	--[[
+		Search for whether the user is banned, if so, then kick them with a specified reason and duration of the ban
+	]]
+	local bansQuery = {
+		["userId"] = player.UserId,
+	}
+	CollectionHandler.updateDocumentOnExpiration(
+		CollectionHandler.collections.BansCollection,
+		bansQuery,
+		function(document)
+			kickPlayer(
+				player,
+				" Ban: "
+					.. document["reason"]
+					.. ". Time remaining: "
+					.. (DecodeDate(document["expires"]).sinceEpoch - os.time())
+			)
+		end
+	)
+
+	--[[
+		 Search for whether the user is banned in the given server (by JobId), if so, then kick them with a specified reason and duration of the server ban
+	]]
+	local serverBansQuery = {
+		["userId"] = player.UserId,
+		["jobId"] = game.JobId,
+	}
+	CollectionHandler.updateDocumentOnExpiration(
+		CollectionHandler.collections.ServerbansCollection,
+		serverBansQuery,
+		function(document)
+			assert(document ~= nil, "Error, document not found")
+			kickPlayer(
+				player,
+				" Server ban: "
+					.. document["reason"]
+					.. ". Time remaining: "
+					.. (DecodeDate(document["expires"]).sinceEpoch - os.time())
+			)
+		end
+	)
 end)
 ]]></ProtectedString>
 				<int64 name="SourceAssetId">-1</int64>
@@ -892,7 +946,7 @@ end)
 local HttpService = game:GetService("HttpService")
 
 local APIVersion = "v1"
-local URI = "https://data.mongodb-api.com/app/%s/endpoint/data/"..APIVersion
+local URI = "https://data.mongodb-api.com/app/%s/endpoint/data/" .. APIVersion
 
 local ENDPOINTS = {
 	POST = {
@@ -905,7 +959,7 @@ local ENDPOINTS = {
 		["ReplaceOne"] = "/action/replaceOne",
 		["DeleteOne"] = "/action/deleteOne",
 		["DeleteMany"] = "/action/deleteMany",
-	}
+	},
 }
 
 local Rongo = {}
@@ -925,54 +979,54 @@ RongoCollection.__index = RongoCollection
 local RongoDocument = {}
 RongoDocument.__index = RongoDocument
 
-function Rongo.new(AppId: string,Key: string)
+function Rongo.new(AppId: string, Key: string)
 	local Client = {}
-	setmetatable(Client,RongoClient)
-	
+	setmetatable(Client, RongoClient)
+
 	Client["AppId"] = AppId
 	Client["Key"] = Key
-	
+
 	return Client
 end
 
 function RongoClient:SetVersion(Version: "v1" | "beta")
-	URI = "https://data.mongodb-api.com/app/%s/endpoint/data/"..Version
+	URI = "https://data.mongodb-api.com/app/%s/endpoint/data/" .. Version
 end
 
 function RongoClient:GetCluster(Name: string)
 	local Cluster = {}
-	setmetatable(Cluster,RongoCluster)
-	
+	setmetatable(Cluster, RongoCluster)
+
 	Cluster["Client"] = self
 	Cluster["Name"] = Name
-	
+
 	return Cluster
 end
 
 function RongoCluster:GetDatabase(Name: string)
 	local Database = {}
-	setmetatable(Database,RongoDatabase)
-	
+	setmetatable(Database, RongoDatabase)
+
 	Database["Client"] = self["Client"]
 	Database["Cluster"] = self
 	Database["Name"] = Name
-	
+
 	return Database
 end
 
 function RongoDatabase:GetCollection(Name: string)
 	local Collection = {}
-	setmetatable(Collection,RongoCollection)
-	
+	setmetatable(Collection, RongoCollection)
+
 	Collection["Client"] = self["Client"]
 	Collection["Cluster"] = self["Cluster"]
 	Collection["Database"] = self
 	Collection["Name"] = Name
-	
+
 	return Collection
 end
 
-function RongoCollection:FindOne(Filter: {[string]: string | {[string]: string}}?): {[string]: any?}?
+function RongoCollection:FindOne(Filter: { [string]: string | { [string]: string } }?): { [string]: any? }?
 	local RequestData = {
 		["dataSource"] = self["Cluster"]["Name"],
 		["database"] = self["Database"]["Name"],
@@ -981,17 +1035,35 @@ function RongoCollection:FindOne(Filter: {[string]: string | {[string]: string}}
 	}
 	local RequestHeaders = {
 		["Access-Control-Request-Headers"] = "*",
-		["api-key"] = self["Client"]["Key"]
+		["api-key"] = self["Client"]["Key"],
 	}
 	RequestData = HttpService:JSONEncode(RequestData)
-	local Success,Response = pcall(function() return HttpService:PostAsync(string.format(URI,self["Client"]["AppId"])..ENDPOINTS.POST.FindOne,RequestData,Enum.HttpContentType.ApplicationJson,false,RequestHeaders) end)
-	if not Success then warn("[RONGO] Request Failed:",Response) return end
+	local Success, Response = pcall(function()
+		return HttpService:PostAsync(
+			string.format(URI, self["Client"]["AppId"]) .. ENDPOINTS.POST.FindOne,
+			RequestData,
+			Enum.HttpContentType.ApplicationJson,
+			false,
+			RequestHeaders
+		)
+	end)
+	if not Success then
+		warn("[RONGO] Request Failed:", Response)
+		return
+	end
 	Response = HttpService:JSONDecode(Response)
-	if not Response["document"] then return nil end
+	if not Response["document"] then
+		return nil
+	end
 	return Response["document"]
 end
 
-function RongoCollection:FindMany(Filter: {[string]: string | {[string]: string}}?,Limit: number?,Sort: {any?}?,Skip: number?): {[number]: {[string]: any?}}?
+function RongoCollection:FindMany(
+	Filter: { [string]: string | { [string]: string } }?,
+	Limit: number?,
+	Sort: { any? }?,
+	Skip: number?
+): { [number]: { [string]: any? } }?
 	local RequestData = {
 		["dataSource"] = self["Cluster"]["Name"],
 		["database"] = self["Database"]["Name"],
@@ -1003,18 +1075,34 @@ function RongoCollection:FindMany(Filter: {[string]: string | {[string]: string}
 	}
 	local RequestHeaders = {
 		["Access-Control-Request-Headers"] = "*",
-		["api-key"] = self["Client"]["Key"]
+		["api-key"] = self["Client"]["Key"],
 	}
 	RequestData = HttpService:JSONEncode(RequestData)
-	local Success,Response = pcall(function() return HttpService:PostAsync(string.format(URI,self["Client"]["AppId"])..ENDPOINTS.POST.FindMany,RequestData,Enum.HttpContentType.ApplicationJson,false,RequestHeaders) end)
-	if not Success then warn("[RONGO] Request Failed:",Response) return end
+	local Success, Response = pcall(function()
+		return HttpService:PostAsync(
+			string.format(URI, self["Client"]["AppId"]) .. ENDPOINTS.POST.FindMany,
+			RequestData,
+			Enum.HttpContentType.ApplicationJson,
+			false,
+			RequestHeaders
+		)
+	end)
+	if not Success then
+		warn("[RONGO] Request Failed:", Response)
+		return
+	end
 	Response = HttpService:JSONDecode(Response)
-	if not Response["documents"] then return nil end
+	if not Response["documents"] then
+		return nil
+	end
 	return Response["documents"]
 end
 
-function RongoCollection:InsertOne(Document: {[string]: any?}): string?
-	if not Document then warn("[RONGO] Document argument cannot be empty") return nil end
+function RongoCollection:InsertOne(Document: { [string]: any? }): string?
+	if not Document then
+		warn("[RONGO] Document argument cannot be empty")
+		return nil
+	end
 	local RequestData = {
 		["dataSource"] = self["Cluster"]["Name"],
 		["database"] = self["Database"]["Name"],
@@ -1023,18 +1111,34 @@ function RongoCollection:InsertOne(Document: {[string]: any?}): string?
 	}
 	local RequestHeaders = {
 		["Access-Control-Request-Headers"] = "*",
-		["api-key"] = self["Client"]["Key"]
+		["api-key"] = self["Client"]["Key"],
 	}
 	RequestData = HttpService:JSONEncode(RequestData)
-	local Success,Response = pcall(function() return HttpService:PostAsync(string.format(URI,self["Client"]["AppId"])..ENDPOINTS.POST.InsertOne,RequestData,Enum.HttpContentType.ApplicationJson,false,RequestHeaders) end)
-	if not Success then warn("[RONGO] Request Failed:",Response) return end
+	local Success, Response = pcall(function()
+		return HttpService:PostAsync(
+			string.format(URI, self["Client"]["AppId"]) .. ENDPOINTS.POST.InsertOne,
+			RequestData,
+			Enum.HttpContentType.ApplicationJson,
+			false,
+			RequestHeaders
+		)
+	end)
+	if not Success then
+		warn("[RONGO] Request Failed:", Response)
+		return
+	end
 	Response = HttpService:JSONDecode(Response)
-	if not Response["insertedId"] then return nil end
+	if not Response["insertedId"] then
+		return nil
+	end
 	return Response["insertedId"]
 end
 
-function RongoCollection:InsertMany(Documents: {[number]: {[string]: any?}}): {[number]: string}?
-	if not Documents then warn("[RONGO] Documents argument cannot be empty") return nil end
+function RongoCollection:InsertMany(Documents: { [number]: { [string]: any? } }): { [number]: string }?
+	if not Documents then
+		warn("[RONGO] Documents argument cannot be empty")
+		return nil
+	end
 	local RequestData = {
 		["dataSource"] = self["Cluster"]["Name"],
 		["database"] = self["Database"]["Name"],
@@ -1043,19 +1147,42 @@ function RongoCollection:InsertMany(Documents: {[number]: {[string]: any?}}): {[
 	}
 	local RequestHeaders = {
 		["Access-Control-Request-Headers"] = "*",
-		["api-key"] = self["Client"]["Key"]
+		["api-key"] = self["Client"]["Key"],
 	}
 	RequestData = HttpService:JSONEncode(RequestData)
-	local Success,Response = pcall(function() return HttpService:PostAsync(string.format(URI,self["Client"]["AppId"])..ENDPOINTS.POST.InsertMany,RequestData,Enum.HttpContentType.ApplicationJson,false,RequestHeaders) end)
-	if not Success then warn("[RONGO] Request Failed:",Response) return end
+	local Success, Response = pcall(function()
+		return HttpService:PostAsync(
+			string.format(URI, self["Client"]["AppId"]) .. ENDPOINTS.POST.InsertMany,
+			RequestData,
+			Enum.HttpContentType.ApplicationJson,
+			false,
+			RequestHeaders
+		)
+	end)
+	if not Success then
+		warn("[RONGO] Request Failed:", Response)
+		return
+	end
 	Response = HttpService:JSONDecode(Response)
-	if not Response["insertedIds"] then return nil end
+	if not Response["insertedIds"] then
+		return nil
+	end
 	return Response["insertedIds"]
 end
 
-function RongoCollection:UpdateOne(Filter: string,Update: {[string]: any?},Upsert: boolean?): {["matchedCount"]: number,["modifiedCount"]: number,["upsertedId"]: string?}?
-	if not Filter then warn("[RONGO] Filter argument cannot be empty") return nil end
-	if not Update then warn("[RONGO] Update argument cannot be empty") return nil end
+function RongoCollection:UpdateOne(
+	Filter: string,
+	Update: { [string]: any? },
+	Upsert: boolean?
+): { ["matchedCount"]: number, ["modifiedCount"]: number, ["upsertedId"]: string? }?
+	if not Filter then
+		warn("[RONGO] Filter argument cannot be empty")
+		return nil
+	end
+	if not Update then
+		warn("[RONGO] Update argument cannot be empty")
+		return nil
+	end
 	local RequestData = {
 		["dataSource"] = self["Cluster"]["Name"],
 		["database"] = self["Database"]["Name"],
@@ -1066,18 +1193,39 @@ function RongoCollection:UpdateOne(Filter: string,Update: {[string]: any?},Upser
 	}
 	local RequestHeaders = {
 		["Access-Control-Request-Headers"] = "*",
-		["api-key"] = self["Client"]["Key"]
+		["api-key"] = self["Client"]["Key"],
 	}
 	RequestData = HttpService:JSONEncode(RequestData)
-	local Success,Response = pcall(function() return HttpService:PostAsync(string.format(URI,self["Client"]["AppId"])..ENDPOINTS.POST.UpdateOne,RequestData,Enum.HttpContentType.ApplicationJson,false,RequestHeaders) end)
-	if not Success then warn("[RONGO] Request Failed:",Response) return end
+	local Success, Response = pcall(function()
+		return HttpService:PostAsync(
+			string.format(URI, self["Client"]["AppId"]) .. ENDPOINTS.POST.UpdateOne,
+			RequestData,
+			Enum.HttpContentType.ApplicationJson,
+			false,
+			RequestHeaders
+		)
+	end)
+	if not Success then
+		warn("[RONGO] Request Failed:", Response)
+		return
+	end
 	Response = HttpService:JSONDecode(Response)
 	return Response
 end
 
-function RongoCollection:UpdateMany(Filter: string,Update: {[string]: any?},Upsert: boolean?): {["matchedCount"]: number,["modifiedCount"]: number,["upsertedId"]: string?}?
-	if not Filter then warn("[RONGO] Filter argument cannot be empty") return nil end
-	if not Update then warn("[RONGO] Update argument cannot be empty") return nil end
+function RongoCollection:UpdateMany(
+	Filter: string,
+	Update: { [string]: any? },
+	Upsert: boolean?
+): { ["matchedCount"]: number, ["modifiedCount"]: number, ["upsertedId"]: string? }?
+	if not Filter then
+		warn("[RONGO] Filter argument cannot be empty")
+		return nil
+	end
+	if not Update then
+		warn("[RONGO] Update argument cannot be empty")
+		return nil
+	end
 	local RequestData = {
 		["dataSource"] = self["Cluster"]["Name"],
 		["database"] = self["Database"]["Name"],
@@ -1088,39 +1236,74 @@ function RongoCollection:UpdateMany(Filter: string,Update: {[string]: any?},Upse
 	}
 	local RequestHeaders = {
 		["Access-Control-Request-Headers"] = "*",
-		["api-key"] = self["Client"]["Key"]
+		["api-key"] = self["Client"]["Key"],
 	}
 	RequestData = HttpService:JSONEncode(RequestData)
-	local Success,Response = pcall(function() return HttpService:PostAsync(string.format(URI,self["Client"]["AppId"])..ENDPOINTS.POST.UpdateMany,RequestData,Enum.HttpContentType.ApplicationJson,false,RequestHeaders) end)
-	if not Success then warn("[RONGO] Request Failed:",Response) return end
+	local Success, Response = pcall(function()
+		return HttpService:PostAsync(
+			string.format(URI, self["Client"]["AppId"]) .. ENDPOINTS.POST.UpdateMany,
+			RequestData,
+			Enum.HttpContentType.ApplicationJson,
+			false,
+			RequestHeaders
+		)
+	end)
+	if not Success then
+		warn("[RONGO] Request Failed:", Response)
+		return
+	end
 	Response = HttpService:JSONDecode(Response)
 	return Response
 end
 
-function RongoCollection:ReplaceOne(Filter: string,Replacement: {[string]: any?},Upsert: boolean?): {["matchedCount"]: number,["modifiedCount"]: number,["upsertedId"]: string?}?
-	if not Filter then warn("[RONGO] Filter argument cannot be empty") return nil end
-	if not Replacement then warn("[RONGO] Update argument cannot be empty") return nil end
+function RongoCollection:ReplaceOne(
+	Filter: string,
+	Replacement: { [string]: any? },
+	Upsert: boolean?
+): { ["matchedCount"]: number, ["modifiedCount"]: number, ["upsertedId"]: string? }?
+	if not Filter then
+		warn("[RONGO] Filter argument cannot be empty")
+		return nil
+	end
+	if not Replacement then
+		warn("[RONGO] Update argument cannot be empty")
+		return nil
+	end
 	local RequestData = {
 		["dataSource"] = self["Cluster"]["Name"],
 		["database"] = self["Database"]["Name"],
 		["collection"] = self["Name"],
 		["filter"] = Filter or nil,
 		["replacement"] = Replacement,
-		["upsert"] = Upsert
+		["upsert"] = Upsert,
 	}
 	local RequestHeaders = {
 		["Access-Control-Request-Headers"] = "*",
-		["api-key"] = self["Client"]["Key"]
+		["api-key"] = self["Client"]["Key"],
 	}
 	RequestData = HttpService:JSONEncode(RequestData)
-	local Success,Response = pcall(function() return HttpService:PostAsync(string.format(URI,self["Client"]["AppId"])..ENDPOINTS.POST.ReplaceOne,RequestData,Enum.HttpContentType.ApplicationJson,false,RequestHeaders) end)
-	if not Success then warn("[RONGO] Request Failed:",Response) return end
+	local Success, Response = pcall(function()
+		return HttpService:PostAsync(
+			string.format(URI, self["Client"]["AppId"]) .. ENDPOINTS.POST.ReplaceOne,
+			RequestData,
+			Enum.HttpContentType.ApplicationJson,
+			false,
+			RequestHeaders
+		)
+	end)
+	if not Success then
+		warn("[RONGO] Request Failed:", Response)
+		return
+	end
 	Response = HttpService:JSONDecode(Response)
 	return Response
 end
 
 function RongoCollection:DeleteOne(Filter: string): number?
-	if not Filter then warn("[RONGO] Filter argument cannot be empty") return nil end
+	if not Filter then
+		warn("[RONGO] Filter argument cannot be empty")
+		return nil
+	end
 	local RequestData = {
 		["dataSource"] = self["Cluster"]["Name"],
 		["database"] = self["Database"]["Name"],
@@ -1129,18 +1312,34 @@ function RongoCollection:DeleteOne(Filter: string): number?
 	}
 	local RequestHeaders = {
 		["Access-Control-Request-Headers"] = "*",
-		["api-key"] = self["Client"]["Key"]
+		["api-key"] = self["Client"]["Key"],
 	}
 	RequestData = HttpService:JSONEncode(RequestData)
-	local Success,Response = pcall(function() return HttpService:PostAsync(string.format(URI,self["Client"]["AppId"])..ENDPOINTS.POST.DeleteOne,RequestData,Enum.HttpContentType.ApplicationJson,false,RequestHeaders) end)
-	if not Success then warn("[RONGO] Request Failed:",Response) return end
+	local Success, Response = pcall(function()
+		return HttpService:PostAsync(
+			string.format(URI, self["Client"]["AppId"]) .. ENDPOINTS.POST.DeleteOne,
+			RequestData,
+			Enum.HttpContentType.ApplicationJson,
+			false,
+			RequestHeaders
+		)
+	end)
+	if not Success then
+		warn("[RONGO] Request Failed:", Response)
+		return
+	end
 	Response = HttpService:JSONDecode(Response)
-	if not Response["deletedCount"] then return 0 end
+	if not Response["deletedCount"] then
+		return 0
+	end
 	return Response["deletedCount"]
 end
 
 function RongoCollection:DeleteMany(Filter: string): number?
-	if not Filter then warn("[RONGO] Filter argument cannot be empty") return nil end
+	if not Filter then
+		warn("[RONGO] Filter argument cannot be empty")
+		return nil
+	end
 	local RequestData = {
 		["dataSource"] = self["Cluster"]["Name"],
 		["database"] = self["Database"]["Name"],
@@ -1149,20 +1348,140 @@ function RongoCollection:DeleteMany(Filter: string): number?
 	}
 	local RequestHeaders = {
 		["Access-Control-Request-Headers"] = "*",
-		["api-key"] = self["Client"]["Key"]
+		["api-key"] = self["Client"]["Key"],
 	}
 	RequestData = HttpService:JSONEncode(RequestData)
-	local Success,Response = pcall(function() return HttpService:PostAsync(string.format(URI,self["Client"]["AppId"])..ENDPOINTS.POST.DeleteMany,RequestData,Enum.HttpContentType.ApplicationJson,false,RequestHeaders) end)
-	if not Success then warn("[RONGO] Request Failed:",Response) return end
+	local Success, Response = pcall(function()
+		return HttpService:PostAsync(
+			string.format(URI, self["Client"]["AppId"]) .. ENDPOINTS.POST.DeleteMany,
+			RequestData,
+			Enum.HttpContentType.ApplicationJson,
+			false,
+			RequestHeaders
+		)
+	end)
+	if not Success then
+		warn("[RONGO] Request Failed:", Response)
+		return
+	end
 	Response = HttpService:JSONDecode(Response)
-	if not Response["deletedCount"] then return 0 end
+	if not Response["deletedCount"] then
+		return 0
+	end
 	return Response["deletedCount"]
 end
 
-return Rongo]]></ProtectedString>
+return Rongo
+]]></ProtectedString>
 					<int64 name="SourceAssetId">-1</int64>
 					<BinaryString name="Tags"></BinaryString>
 					<UniqueId name="UniqueId">4a3f675d3ebeaefe03277c020002fffb</UniqueId>
+				</Properties>
+			</Item>
+			<Item class="ModuleScript" referent="RBXBA0D4868F2664148A071BD1DDA810E7B">
+				<Properties>
+					<BinaryString name="AttributesSerialize"></BinaryString>
+					<Content name="LinkedSource"><null></null></Content>
+					<string name="Name">CollectionHandler</string>
+					<string name="ScriptGuid">{871CB21D-F61F-4DBB-AD39-93007487A94E}</string>
+					<ProtectedString name="Source"><![CDATA[local DecodeDate = require(script.Parent.DecodeDate)
+
+local module = {}
+
+--[[
+
+     This example uses Rongo as a MongoDB API wrapper of choice 
+     For more info visit: https://devforum.roblox.com/t/rongo-mongodb-api-wrapper-for-roblox/1755615)
+
+]]
+local Rongo = require(script.Parent.Rongo)
+local Client = Rongo.new("API-NAME", "API-KEY") -- Replace these with the ID and key you stored earlier!
+local Cluster = Client:GetCluster("Cluster0") -- Replace this with the name of your cluster (usually "Cluster0")
+local Database = Cluster:GetDatabase("test") -- Replace this with the name of your database!
+
+module.collections = {
+	BansCollection = Database:GetCollection("bans"),
+	ServerbansCollection = Database:GetCollection("serverbans"),
+}
+--
+
+--[[ 
+
+    If 'expires' entry is expired in passed query then delete the document from collection, else execute a callback
+
+]]
+function module.updateDocumentOnExpiration(collection, query, expiredFunction)
+	assert(collection ~= nil, "Missing collection!")
+	assert(query ~= nil and typeof(query) == "table", "Missing query or of incorrect type!")
+
+	local doc = collection:FindOne(query)
+	if not doc then
+		-- Not listed in a collection, do nothing
+		return
+	end
+
+	local decodedDate = DecodeDate(doc["expires"])
+	if decodedDate.sinceEpoch - os.time() <= 0 then
+		-- Expired, request to remove
+		collection:DeleteOne(query)
+	else
+		-- Still punished
+		if not expiredFunction or not typeof(expiredFunction) == "function" then
+			return
+		end
+
+		expiredFunction(doc)
+	end
+end
+
+return module
+]]></ProtectedString>
+					<int64 name="SourceAssetId">-1</int64>
+					<BinaryString name="Tags"></BinaryString>
+					<UniqueId name="UniqueId">3d47c43c611c92540327da0a00030037</UniqueId>
+				</Properties>
+			</Item>
+			<Item class="ModuleScript" referent="RBXFCE5C78594434D94B510D7AC3BF3EBFB">
+				<Properties>
+					<BinaryString name="AttributesSerialize"></BinaryString>
+					<Content name="LinkedSource"><null></null></Content>
+					<string name="Name">DecodeDate</string>
+					<string name="ScriptGuid">{6931B404-94FC-48EB-AC19-3DA088AC6D3F}</string>
+					<ProtectedString name="Source"><![CDATA[--[[ 
+    Unwraps the passed ISO Date <String> into a dictionary following the format: 
+    {
+        year, 
+        month, 
+        day, 
+        hour, 
+        min, 
+        sec, 
+        milliseconds, 
+        sinceEpoch
+    }
+]]
+function decodeDate(str: string)
+	assert(str ~= nil and typeof(str) == "string", "Missing argument or of incorrect type!")
+
+	local data = {}
+	local y, m, d, h, i, s, t = str:match("(%d+)-(%d+)-(%d+)T(%d+):(%d+):(%d+).(%d+)Z")
+	data.year = y
+	data.month = m
+	data.day = d
+	data.hour = h
+	data.min = i
+	data.sec = s
+	data.milli = t
+	data.sinceEpoch = os.time(data)
+
+	return data
+end
+
+return decodeDate
+]]></ProtectedString>
+					<int64 name="SourceAssetId">-1</int64>
+					<BinaryString name="Tags"></BinaryString>
+					<UniqueId name="UniqueId">3d47c43c611c92540327da0a00030039</UniqueId>
 				</Properties>
 			</Item>
 		</Item>
