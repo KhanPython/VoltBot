@@ -28,7 +28,7 @@
 * Fork the [Replit](https://replit.com/@pythonlittlegam/VOLT-Beta#index.js) repo
 * Start a mongoDB project and create a new cluster
 * Generate the aforementioned secrets via the forked Replit repo
-* In your Roblox experience, subsribe to any of the given topic names; [example usage](example/ExampleUsage.lua)
+* In your Roblox experience, subsribe to any of the given topic names; [example usage](example-place/src)
 * Run `npm install` in Replit CLI (Shell) to install all of the required dependencies
 * Run the forked Replit repository 
 * Execute the desired discord command, i.e: 
