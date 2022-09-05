@@ -32,7 +32,7 @@
 * Run `npm install` in Replit CLI (Shell) to install all of the required dependencies
 * Run the forked Replit repository 
 * Execute the desired discord command, i.e: 
-  #### ``` /ban `<userId>`, `<reason>`, `<duration>` ``` 
+  ``` /ban `<userId>`, `<reason>`, `<duration>` ``` 
 * **(Additional)** WOKCommands extends beyond available commands, allowing to expose/cover certain commands to a certain discord role. Read more on this on WOKCommands' official [documentation](https://docs.wornoffkeys.com/built-in-commands-and-features/configurable-required-roles).
 #
 ## Available Roblox MessagingService topics (**Under construction**):
