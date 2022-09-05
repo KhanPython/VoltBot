@@ -48,6 +48,7 @@ module.exports = {
 
     // Confirm whether a user with the passed Id exists
     const userInfo = robloxUserInfo.UserInfoById(userId)
+    console.log(userInfo.status)
     if (!userInfo.success) {
       return userInfo.status
     }
