@@ -48,7 +48,7 @@ module.exports = {
     const duration = args[2] 
 
     // Confirm whether a user with the passed Id exists
-    const userInfo = robloxUserInfo.UserInfoById(userId).then((responseData) => responseData)
+    let userInfo = robloxUserInfo.UserInfoById(userId).then((responseData) => responseData)
     console.log(userInfo.status)
 
     // Checks whether the passed userId is already listed     
