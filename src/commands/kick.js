@@ -4,6 +4,7 @@ const discord = require("discord.js")
 const messageToRoblox = require("./../robloxMessageAPI")
 
 const UNIVERSE_ID = process.env.universeID
+const API_KEY = process.env.robloxAPIKey
 const TOPIC = "DiscordKick"
 
 module.exports = {
@@ -40,7 +41,7 @@ module.exports = {
       const reason = args[1]
 
       const stringifiedData = JSON.stringify({'UserId': userId, 'Reason': reason})
-      const embed = messageToRoblox.MessageSend(stringifiedData, UNIVERSE_ID, TOPIC).then(responseData => {
+      const embed = messageToRoblox.MessageSend(stringifiedData, UNIVERSE_ID, TOPIC, API_KEY).then(responseData => {
           return new discord.MessageEmbed()
           .setTitle(`Kick user: ${userId}`)
           .setColor(responseData.success? "GREEN" : "RED")

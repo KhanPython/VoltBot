@@ -5,6 +5,7 @@ const messageToRoblox = require("./../robloxMessageAPI")
 const ServerBan = require("./../models/ServerBan")
 
 const UNIVERSE_ID = process.env.universeID
+const API_KEY = process.env.robloxAPIKey
 const TOPIC = "DiscordServerBan"
 
 module.exports = {
@@ -64,7 +65,7 @@ module.exports = {
   
       // Notify the servers that the user has been banned, thus kicking them
       const stringifiedData = JSON.stringify({ 'UserId': userId, 'Reason': reason, 'JobId': jobId, 'Duration': duration })
-      const embed = messageToRoblox.MessageSend(stringifiedData, UNIVERSE_ID, TOPIC).then(async responseData => {
+      const embed = messageToRoblox.MessageSend(stringifiedData, UNIVERSE_ID, TOPIC, API_KEY).then(async responseData => {
         // Filter and calculate the ban period
         let time
         let type

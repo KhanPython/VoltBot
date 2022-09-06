@@ -5,6 +5,7 @@ const messageToRoblox = require("../robloxMessageAPI")
 const ServerBan = require("./../models/ServerBan")
 
 const UNIVERSE_ID = process.env.universeID
+const API_KEY = process.env.robloxAPIKey
 const TOPIC = "DiscordServerUnBan"
 
 module.exports = {
@@ -42,7 +43,7 @@ module.exports = {
 
     // Notify the servers that the user has been server unbanned
     const stringifiedData = JSON.stringify({ 'UserId': userId, 'JobId': jobId })
-    const embed = messageToRoblox.MessageSend(stringifiedData, UNIVERSE_ID, TOPIC).then(async responseData => {
+    const embed = messageToRoblox.MessageSend(stringifiedData, UNIVERSE_ID, TOPIC, API_KEY).then(async responseData => {
 
       // Checks whether the passed userId by jobId is already listed     
       const result = await ServerBan.findOne( jobId? {userId: userId, jobId: jobId} : {userId: userId} ).exec()

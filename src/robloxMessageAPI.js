@@ -2,7 +2,7 @@ const axios = require('axios').default
 
 
 // Returns a status string
-exports.MessageSend = async function MessageSend(message, universeId, topic) {
+exports.MessageSend = async function MessageSend(message, universeId, topic, apiKey) {
     const resp = await axios.post(
         `https://apis.roblox.com/messaging-service/v1/universes/${universeId}/topics/${topic}`,
         {
@@ -10,7 +10,7 @@ exports.MessageSend = async function MessageSend(message, universeId, topic) {
         },
         {
             headers: {
-                'x-api-key': process.env.robloxAPIKey,
+                'x-api-key': apiKey,
                 'Content-Type': 'application/json'
             }
         }
