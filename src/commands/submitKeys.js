@@ -1,11 +1,6 @@
-
-const { stringify } = require("querystring")
 const discord = require("discord.js")
-const messageToRoblox = require("../robloxMessageAPI")
 const Secret = require("../models/Secret")
-
-const UNIVERSE_ID = process.env.universeID
-const TOPIC = "DiscordKick"
+const argon2 = require("argon2")
 
 module.exports = {
 
@@ -15,10 +10,10 @@ module.exports = {
     slash: "both",
     testOnly: false,
 
-    permissions: ['OWNER'],
+    permissions: ['ADMINISTRATOR'],
     ephemeral: false,
-    minArgs: 2,
-    expectedArgs: '<msapikey> <mongodbapikey>',
+    minArgs: 3,
+    expectedArgs: '<msapikey> <mongodbapikey> <universeid>',
     guildOnly: true,
 
     options: [
@@ -33,19 +28,33 @@ module.exports = {
           description: 'Your mongoDb API key',
           required: true,
           type: discord.Constants.ApplicationCommandOptionTypes.STRING
+        },
+        {
+          name: "universeid",
+          description: 'Your universe Id',
+          required: true,
+          type: discord.Constants.ApplicationCommandOptionTypes.STRING
         }
     ], 
 
-    callback: async ({user, args}) => {
-      const msapikey = args[0]
-      const mongodbapikey = args[1]
+    callback: async ({args, guild}) => {
+        // Delete the previous submission from our db (if there is one)
+        await Secret.deleteOne( {guildid: guild.id} )
 
-       // Ban in the data-base
-       const newSecret = await Secret.create({
-        "msapikey": msapikey,
-        "mongodbapikey": mongodbapikey,
-      })
+        // Hash our API keys with a salt from a .env.
+        const salt = Buffer.from(process.env.serverSalt)
+        const msapikey = await argon2.hash(args[0], {salt: salt})
+        const mongodbapikey = await argon2.hash(args[1], {salt: salt})
+        const universeid = args[2]
 
-      return "Secrets submitted"
+        // Create a new db collection storing all of API secrets.
+        await Secret.create({
+          "msapikey": msapikey,
+          "mongodbapikey": mongodbapikey,
+          "universeid": universeid,
+          "guildid": guild.id
+        })
+
+        return 'Secrets submitted'
     }
 }
