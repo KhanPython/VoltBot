@@ -11,7 +11,7 @@ module.exports = {
     testOnly: false,
 
     permissions: ['ADMINISTRATOR'],
-    ephemeral: false,
+    ephemeral: true,
     minArgs: 3,
     expectedArgs: '<msapikey> <mongodbapikey> <universeid>',
     guildOnly: true,
@@ -55,6 +55,11 @@ module.exports = {
           "guildid": guild.id
         })
 
-        return 'Secrets submitted'
+        return new discord.MessageEmbed()
+        .setTitle(`Server ${guild.id} secrets`)
+        .setColor("BLUE")
+        .setDescription("API keys successfully saved!")
+        .addField("Remember to never share API keys with anyone as they may grant access for malicious requests!")
+        .setTimestamp()
     }
 }
