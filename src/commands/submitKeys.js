@@ -37,7 +37,7 @@ module.exports = {
         }
     ], 
 
-    callback: async ({message, args, guild}) => {
+    callback: async ({message, interaction, args, guild}) => {
         // Delete the previous submission from our db (if there is one)
         await Secret.deleteOne( {guildid: guild.id} )
 
@@ -62,9 +62,18 @@ module.exports = {
         .addField("❗REMINDER:" , "Never share your API keys with anyone! Doing so may completely break the experience.")
         .setTimestamp()
 
-        return {
-          embeds: [embed],
-          ephemeral: true
+        if (message) {
+          message.reply({
+            embeds: [embed],
+            ephemeral: true
+          })
+        }
+
+        if (interaction) {
+          interaction.reply({
+            embeds: [embed],
+            ephemeral: true
+          })
         }
     }
 }
