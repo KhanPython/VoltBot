@@ -11,6 +11,16 @@ const secretsSchema = new Schema(
       type: String,
       required: true
     },
+    universeid: {
+      type: String,
+      required: true
+    },
+  },
+  {
+    guildid: {
+      type: String,
+      required: true
+    }
   },
   { 
     timestamps: true 
