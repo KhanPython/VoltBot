@@ -62,9 +62,9 @@ module.exports = {
         .addField("❗REMINDER:" , "Never share your API keys with anyone! Doing so may completely break the experience.")
         .setTimestamp()
 
-        message.reply({
+        return {
           embeds: [embed],
           ephemeral: true
-        })
+        }
     }
 }
