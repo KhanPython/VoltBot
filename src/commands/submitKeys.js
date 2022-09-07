@@ -37,7 +37,7 @@ module.exports = {
         }
     ], 
 
-    callback: async ({args, guild}) => {
+    callback: async ({message, args, guild}) => {
         // Delete the previous submission from our db (if there is one)
         await Secret.deleteOne( {guildid: guild.id} )
 
@@ -55,11 +55,16 @@ module.exports = {
           "guildid": guild.id
         })
 
-        return new discord.MessageEmbed()
+        const embed = new discord.MessageEmbed()
         .setTitle(`Server ${guild.id} secrets`)
         .setColor("BLUE")
         .setDescription("✅ API keys successfully saved!")
         .addField("❗REMINDER:" , "Never share your API keys with anyone! Doing so may completely break the experience.")
         .setTimestamp()
+
+        message.reply({
+          embeds: [embed],
+          ephemeral: true
+        })
     }
 }
