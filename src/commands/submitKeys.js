@@ -59,7 +59,7 @@ module.exports = {
         .setTitle(`Server ${guild.id} secrets set`)
         .setColor("BLUE")
         .setDescription("✅ API keys successfully saved!")
-        .addField("❗REMINDER:" , "Never share your API keys with anyone! Doing so may completely break the experience.")
+        .addField("REMINDER:" , "Never share your API keys with anyone! Doing so may completely break your linked experience.")
         .setTimestamp()
 
         if (message) {
