@@ -60,7 +60,7 @@ module.exports = {
       return `UserId: ${userId} is already banned from the experience.`
     }
 
-    // Notify the servers that the user has been banned, thus kicking them
+    // Notify the servers that the user has been banned, thus kicking them if they're in session
     const stringifiedData = JSON.stringify({ 'UserId': userId, 'Reason': reason, 'Duration': duration })
     const embed = messageToRoblox.MessageSend(stringifiedData, UNIVERSE_ID, TOPIC, API_KEY).then(async responseData => {
       // Filter and calculate the ban duration
