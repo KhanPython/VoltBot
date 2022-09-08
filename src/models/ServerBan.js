@@ -1,36 +1,35 @@
-const mongoose = require('mongoose')
-const Schema = mongoose.Schema
+const mongoose = require("mongoose");
+const Schema = mongoose.Schema;
 
 const serverBanSchema = new Schema(
   {
     userId: {
       type: Number,
-      required: true
+      required: true,
     },
     reason: {
       type: String,
-      required: true
+      required: true,
     },
     jobId: {
       type: Number,
-      required: true
+      required: true,
     },
     duration: {
       type: String,
       required: false,
-      default: '36500d',
+      default: "36500d",
     },
     expires: {
       type: Date,
-      required: true
+      required: true,
     },
   },
-  { 
-    timestamps: true 
+  {
+    timestamps: true,
   }
-)
+);
 
-const name = 'ServerBan'
+const name = "ServerBan";
 
-
-module.exports = mongoose.models[name] || mongoose.model(name, serverBanSchema)
+module.exports = mongoose.models[name] || mongoose.model(name, serverBanSchema);

@@ -1,32 +1,31 @@
-const mongoose = require('mongoose')
-const Schema = mongoose.Schema
+const mongoose = require("mongoose");
+const Schema = mongoose.Schema;
 
 const banSchema = new Schema(
   {
     userId: {
       type: Number,
-      required: true
+      required: true,
     },
     reason: {
       type: String,
-      required: true
+      required: true,
     },
     duration: {
       type: String,
       required: false,
-      default: '36500d'
+      default: "36500d",
     },
     expires: {
       type: Date,
-      required: true
-    }
+      required: true,
+    },
   },
-  { 
-    timestamps: true 
+  {
+    timestamps: true,
   }
-)
+);
 
-const name = 'Ban'
+const name = "Ban";
 
-
-module.exports = mongoose.models[name] || mongoose.model(name, banSchema)
+module.exports = mongoose.models[name] || mongoose.model(name, banSchema);

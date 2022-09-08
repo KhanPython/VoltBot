@@ -1,14 +1,15 @@
-const axios = require('axios').default
-
+const axios = require("axios").default;
 
 exports.UserInfoById = async function UserInfoById(userId) {
-    const resp = await axios.get(`https://users.roblox.com/v1/users/${userId}/`)
-        .then(response => {
-            return {status: '**Success**' , success: true , data: response} 
-        })
-        .catch(err => {
-            if (err.response.status == 404) return {status: '**Error:** Invalid user id.'}  
-        })
+  const resp = await axios
+    .get(`https://users.roblox.com/v1/users/${userId}/`)
+    .then((response) => {
+      return { status: "**Success**", success: true, data: response };
+    })
+    .catch((err) => {
+      if (err.response.status == 404)
+        return { status: "**Error:** Invalid user id." };
+    });
 
-    return resp
-}
+  return resp;
+};
