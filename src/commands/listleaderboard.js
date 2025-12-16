@@ -53,7 +53,7 @@ module.exports = {
 
       if (currentEntries.length === 0) {
         return new EmbedBuilder()
-          .setTitle(`Ordered DataStore Entries - ${leaderboardName}`)
+          .setTitle(`Leaderboard Entries - ${leaderboardName}`)
           .setColor(0xFFFF00)
           .setDescription("No entries found in this ordered datastore")
           .addFields({ name: "Scope", value: scopeId })
@@ -69,7 +69,7 @@ module.exports = {
         });
 
         return new EmbedBuilder()
-          .setTitle(`Ordered DataStore Entries - ${leaderboardName}`)
+          .setTitle(`Leaderboard Entries - ${leaderboardName}`)
           .setColor(0x00FF00)
           .setDescription(entriesText || "No entries")
           .addFields({ name: "Scope", value: scopeId })
