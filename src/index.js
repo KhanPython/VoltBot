@@ -1,4 +1,5 @@
 //Modules
+require("dotenv").config();
 const discord = require("discord.js");
 const wokcommands = require("wokcommands");
 const path = require("path");
@@ -12,13 +13,23 @@ const client = new discord.Client({
   allowedMentions: ["users"],
 });
 
-client.on("ready", () => {
-  new wokcommands(client, {
-    commandsDir: path.join(__dirname, "commands"),
-    featuresDir: path.join(__dirname, "features"),
-  });
+client.on("ready", async () => {
+  try {
+    // Clear all global commands
+    await client.application?.commands.set([]);
+    console.log("Cleared all global commands");
+    
+    // Now load new commands
+    new wokcommands(client, {
+      commandsDir: path.join(__dirname, "commands"),
+      featuresDir: path.join(__dirname, "features"),
+      mongoUri: "",
+    });
 
-  console.log("Bot is now online!");
+    console.log("Bot is ready!");
+  } catch (error) {
+    console.error("Error:", error);
+  }
 });
 
 client.login(discordToken);

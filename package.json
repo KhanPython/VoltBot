@@ -11,12 +11,12 @@
   "license": "ISC",
   "dependencies": {
     "@types/node": "^18.0.6",
-    "axios": "^1.4.0",
-    "discord.js": "^13.9.0",
-    "rbxcloud": "^1.2.0",
-    "wokcommands": "^1.5.3",
     "argon2": "^0.29.1",
-    "dotenv": "^16.0.3"
+    "axios": "^1.4.0",
+    "discord.js": "^14.25.1",
+    "dotenv": "^16.0.3",
+    "rbxcloud": "^1.2.0",
+    "wokcommands": "^1.5.3"
   },
   "devDependencies": {
     "node": "^16.17.0"

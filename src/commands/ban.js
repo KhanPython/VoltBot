@@ -11,7 +11,7 @@ module.exports = {
   permissions: ["ADMINISTRATOR"],
   ephemeral: false,
   minArgs: 2,
-  expectedArgs: "<userId> <reason> <duration>",
+  expectedArgs: "<userId> <reason> [duration] [excludealts]",
   guildOnly: true,
 
   options: [
@@ -29,9 +29,15 @@ module.exports = {
     },
     {
       name: "duration",
-      description: "The duration to ban the user (optional - e.g., '10d', '2h', '30m')",
+      description: "The duration to ban the user (optional - e.g., '7d', '2m', '1y' for days, months, years)",
       required: false,
       type: discord.Constants.ApplicationCommandOptionTypes.STRING,
+    },
+    {
+      name: "excludealts",
+      description: "Ban alternate accounts too (default: false)",
+      required: false,
+      type: discord.Constants.ApplicationCommandOptionTypes.BOOLEAN,
     },
   ],
 
@@ -39,22 +45,23 @@ module.exports = {
     const userId = parseInt(args[0]);
     const reason = args[1];
     const duration = args[2];
+    const excludeAltAccounts = args[3] === "true" || args[3] === true || false;
 
     // Validate duration format if provided
     if (duration) {
       const split = duration.match(/\d+|\D+/g);
       if (!split || split.length !== 2) {
-        return 'Invalid time format! Example format: "10d" where "d" = days, "h" = hours, "m" = minutes.';
+        return 'Invalid time format! Example format: "7d" where "d" = days, "m" = months, "y" = years.';
       }
       const type = split[1].toLowerCase();
-      if (!["d", "h", "m"].includes(type)) {
-        return 'Please use "m", "h" or "d" for minutes, hours and days respectively';
+      if (!["d", "m", "y"].includes(type)) {
+        return 'Please use "d" (days), "m" (months), or "y" (years) for duration';
       }
     }
 
     try {
       // Call Open Cloud Ban function
-      const response = await openCloud.BanUser(userId, reason, duration);
+      const response = await openCloud.BanUser(userId, reason, duration, excludeAltAccounts);
 
       // Return embed response
       return new discord.MessageEmbed()
@@ -72,6 +79,10 @@ module.exports = {
         .addField(
           "Ban Duration:",
           `${duration == undefined ? "permanent" : duration}`
+        )
+        .addField(
+          "Exclude Alts:",
+          excludeAltAccounts ? "✅ Yes" : "❌ No"
         )
         .addField(
           `${response.success ? "✅" : "❌"} Command execution status:`,
