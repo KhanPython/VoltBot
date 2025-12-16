@@ -15,33 +15,52 @@
 
 
 ###### Powered by [WOKCommands](https://docs.wornoffkeys.com/)
-### A private **experimental** admin commands discord.js bot for Roblox experiences that uses OpenCloudAPI and MessagingService, hosted on [Replit](https://replit.com/@pythonlittlegam/VOLT-Beta#index.js). 
+### A private **experimental** admin commands discord.js bot for Roblox experiences using Roblox Open Cloud APIs.
 
 #
-## Required Secrets:
-* A mongoDB [connection string](https://www.mongodb.com/docs/compass/current/connect/)
-* Discord [bot token](https://docs.discordbotstudio.org/setting-up-dbs/finding-your-bot-token) 
-* Roblox experience universe ID
-* Roblox [opencloud API key](https://developer.roblox.com/en-us/articles/open-cloud)
+## Required Environment Variables (GitHub Secrets):
+* `discordToken` - Your Discord [bot token](https://docs.discordbotstudio.org/setting-up-dbs/finding-your-bot-token) 
+* `robloxAPIKey` - Your Roblox [Open Cloud API key](https://developer.roblox.com/en-us/docs/cloud/getting-started)
+* `universeID` - Your Roblox experience universe ID
+
 #
-## To use:
-* Fork the [Replit](https://replit.com/@pythonlittlegam/VOLT-Beta#index.js) repo
-* Start a mongoDB project and create a new cluster
-* Generate the aforementioned secrets via the forked Replit repo
-* In your Roblox experience, subsribe to any of the given topic names; [example usage](example-place/src)
-* Run `npm install` in Replit CLI (Shell) to install all of the required dependencies
-* Run the forked Replit repository 
-* Execute the desired discord command, i.e: 
-  ``` /ban `<userId>`, `<reason>`, `<duration>` ``` 
-* **(Additional)** WOKCommands extends beyond available commands, allowing to expose/cover certain commands to a certain discord role. Read more on this on WOKCommands' official [documentation](https://docs.wornoffkeys.com/built-in-commands-and-features/configurable-required-roles).
+## Setup Instructions:
+
+### 1. Local Development
+Copy `.env.example` to `.env` and fill in your secrets:
+```bash
+cp .env.example .env
+```
+
+### 2. GitHub Actions / Production Deployment
+Add these secrets to your GitHub repository:
+- Go to **Settings** → **Secrets and variables** → **Actions**
+- Create three new repository secrets:
+  - `DISCORD_TOKEN`
+  - `ROBLOX_API_KEY`
+  - `UNIVERSE_ID`
+
+### 3. Installation & Running
+```bash
+npm install
+npm start
+```
+
+### 4. Using Commands
+Execute Discord commands like:
+- `/ban <userId> <reason> [duration]` - Ban a player (e.g., "10d", "2h", "30m")
+- `/unban <userId>` - Unban a player
+- `/give <userId> <amount>` - Give currency to a player
+
 #
-## Available Roblox MessagingService topics (**Under construction**):
-  > `DiscordKick` 
-  >
-  > `DiscordBan`
-  >
-  > `DiscordUnban`
-  >
-  > `DiscordServerBan`
-  >
-  > `DiscordServerUnBan`
+## Features:
+* **User Restrictions API** - Native Roblox ban system (permanent & temporary bans)
+* **DataStore Integration** - Player currency management
+* **Open Cloud** - Native Roblox APIs, no external databases required
+* **Discord Integration** - Easy admin commands from Discord
+
+#
+## Architecture:
+* **Framework**: discord.js v13.9.0
+* **Command Handler**: wokcommands v1.5.3
+* **Roblox SDK**: rbxcloud v1.2.0
