@@ -1,3 +1,7 @@
+//Polyfill for undici compatibility
+const { ReadableStream } = require("node:stream/web");
+globalThis.ReadableStream = ReadableStream;
+
 //Modules
 require("dotenv").config();
 const discord = require("discord.js");
@@ -6,14 +10,12 @@ const path = require("path");
 
 const discordToken = process.env.discordToken;
 
-const Intents = discord.Intents;
-
 const client = new discord.Client({
-  intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES],
-  allowedMentions: ["users"],
+  intents: [discord.IntentsBitField.Flags.Guilds, discord.IntentsBitField.Flags.GuildMessages],
+  allowedMentions: { parse: ["users"] },
 });
 
-client.on("ready", async () => {
+client.on("clientReady", async () => {
   try {
     // Clear all global commands
     await client.application?.commands.set([]);

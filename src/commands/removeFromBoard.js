@@ -1,4 +1,4 @@
-const discord = require("discord.js");
+const { EmbedBuilder, ApplicationCommandOptionType } = require("discord.js");
 const openCloud = require("../openCloudAPI");
 
 module.exports = {
@@ -19,19 +19,19 @@ module.exports = {
       name: "userid",
       description: "The user ID to remove from leaderboard",
       required: true,
-      type: discord.Constants.ApplicationCommandOptionTypes.NUMBER,
+      type: ApplicationCommandOptionType.Number,
     },
     {
       name: "leaderboard",
       description: "The leaderboard name",
       required: true,
-      type: discord.Constants.ApplicationCommandOptionTypes.STRING,
+      type: ApplicationCommandOptionType.String,
     },
     {
       name: "key",
       description: "The specific key to remove (optional, defaults to {userId})",
       required: false,
-      type: discord.Constants.ApplicationCommandOptionTypes.STRING,
+      type: ApplicationCommandOptionType.String,
     },
   ],
 
@@ -52,14 +52,16 @@ module.exports = {
       const checkResult = await openCloud.CheckOrderedDataStoreKey(keyToCheck, leaderboardName);
       
       if (!checkResult.exists) {
-        return new discord.MessageEmbed()
+        return new EmbedBuilder()
           .setTitle(`Remove Leaderboard Entry`)
-          .setColor("YELLOW")
+          .setColor(0xFFFF00)
           .setDescription(`⚠️ Key not found in leaderboard`)
-          .addField("UserId:", userId.toString())
-          .addField("Leaderboard Name:", leaderboardName)
-          .addField("Key searched:", keyToCheck)
-          .addField("Result:", checkResult.message)
+          .addFields(
+            { name: "UserId:", value: userId.toString() },
+            { name: "Leaderboard Name:", value: leaderboardName },
+            { name: "Key searched:", value: keyToCheck },
+            { name: "Result:", value: checkResult.message }
+          )
           .setTimestamp();
       }
 
@@ -67,26 +69,25 @@ module.exports = {
       const response = await openCloud.RemoveOrderedDataStoreData(userId, leaderboardName, key);
 
       // Return embed response
-      return new discord.MessageEmbed()
+      return new EmbedBuilder()
         .setTitle(`Remove Leaderboard Entry`)
-        .setColor(response.success ? "GREEN" : "RED")
+        .setColor(response.success ? 0x00FF00 : 0xFF0000)
         .setDescription(
           response.success
             ? `Entry successfully removed for user ${userId}`
             : "Unable to remove the leaderboard entry"
         )
-        .addField("UserId:", userId.toString())
-        .addField("Leaderboard Name:", leaderboardName)
-        .addField("Key:", key || `${userId}`)
-        .addField(
-          `${response.success ? "✅" : "❌"} Command execution status:`,
-          response.status
+        .addFields(
+          { name: "UserId:", value: userId.toString() },
+          { name: "Leaderboard Name:", value: leaderboardName },
+          { name: "Key:", value: key || `${userId}` },
+          { name: `${response.success ? "✅" : "❌"} Command execution status:`, value: response.status }
         )
         .setTimestamp();
     } catch (error) {
-      return new discord.MessageEmbed()
+      return new EmbedBuilder()
         .setTitle("Error")
-        .setColor("RED")
+        .setColor(0xFF0000)
         .setDescription("An unexpected error occurred")
         .addField("Error:", error.message)
         .setTimestamp();

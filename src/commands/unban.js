@@ -1,4 +1,4 @@
-const discord = require("discord.js");
+const { EmbedBuilder, ApplicationCommandOptionType } = require("discord.js");
 const openCloud = require("./../openCloudAPI");
 
 module.exports = {
@@ -19,7 +19,7 @@ module.exports = {
       name: "userid",
       description: "The user identification",
       required: true,
-      type: discord.Constants.ApplicationCommandOptionTypes.NUMBER,
+      type: ApplicationCommandOptionType.Number,
     },
   ],
 
@@ -31,25 +31,24 @@ module.exports = {
       const response = await openCloud.UnbanUser(userId);
 
       // Return embed response
-      return new discord.MessageEmbed()
+      return new EmbedBuilder()
         .setTitle(`Unban User: ${userId}`)
-        .setColor(response.success ? "GREEN" : "RED")
+        .setColor(response.success ? 0x00FF00 : 0xFF0000)
         .setDescription(
           response.success
             ? `Player has been unbanned`
             : "Unable to unban the player"
         )
-        .addField("UserId:", userId.toString())
-        .addField(
-          `${response.success ? "✅" : "❌"} Command execution status:`,
-          response.status
+        .addFields(
+          { name: "UserId:", value: userId.toString() },
+          { name: `${response.success ? "✅" : "❌"} Command execution status:`, value: response.status }
         )
         .setTimestamp();
     } catch (error) {
       console.error("Error in unban command:", error);
-      return new discord.MessageEmbed()
+      return new EmbedBuilder()
         .setTitle("Error")
-        .setColor("RED")
+        .setColor(0xFF0000)
         .setDescription("An error occurred while processing the command")
         .setTimestamp();
     }

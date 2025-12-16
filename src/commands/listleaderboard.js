@@ -1,4 +1,4 @@
-const discord = require("discord.js");
+const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ApplicationCommandOptionType } = require("discord.js");
 const openCloud = require("../openCloudAPI");
 
 const ENTRIES_PER_PAGE = 10;
@@ -21,13 +21,13 @@ module.exports = {
       name: "leaderboard",
       description: "The leaderboard/ordered datastore name",
       required: true,
-      type: discord.Constants.ApplicationCommandOptionTypes.STRING,
+      type: ApplicationCommandOptionType.String,
     },
     {
       name: "scope",
       description: "The datastore scope (default: global)",
       required: false,
-      type: discord.Constants.ApplicationCommandOptionTypes.STRING,
+      type: ApplicationCommandOptionType.String,
     },
   ],
 
@@ -40,9 +40,9 @@ module.exports = {
       let response = await openCloud.ListOrderedDataStoreEntries(leaderboardName, scopeId);
 
       if (!response.success) {
-        return new discord.MessageEmbed()
+        return new EmbedBuilder()
           .setTitle("Error")
-          .setColor("RED")
+          .setColor(0xFF0000)
           .setDescription(response.status)
           .setTimestamp();
       }
@@ -52,11 +52,11 @@ module.exports = {
       let currentPage = 0;
 
       if (currentEntries.length === 0) {
-        return new discord.MessageEmbed()
+        return new EmbedBuilder()
           .setTitle(`Ordered DataStore Entries - ${leaderboardName}`)
-          .setColor("YELLOW")
+          .setColor(0xFFFF00)
           .setDescription("No entries found in this ordered datastore")
-          .addField("Scope", scopeId)
+          .addFields({ name: "Scope", value: scopeId })
           .setTimestamp();
       }
 
@@ -68,34 +68,34 @@ module.exports = {
           entriesText += `${entryNumber}. **${entry.id}** - Value: ${entry.value}\n`;
         });
 
-        return new discord.MessageEmbed()
+        return new EmbedBuilder()
           .setTitle(`Ordered DataStore Entries - ${leaderboardName}`)
-          .setColor("GREEN")
+          .setColor(0x00FF00)
           .setDescription(entriesText || "No entries")
-          .addField("Scope", scopeId)
+          .addFields({ name: "Scope", value: scopeId })
           .setFooter({ text: `Page ${page + 1}${hasNext ? " (more available)" : ""}` })
           .setTimestamp();
       };
 
       // Create pagination buttons
       const createButtons = (page, hasNext) => {
-        const row = new discord.MessageActionRow();
+        const row = new ActionRowBuilder();
 
         if (page > 0) {
           row.addComponents(
-            new discord.MessageButton()
+            new ButtonBuilder()
               .setCustomId("prev")
               .setLabel("◀ Previous")
-              .setStyle("PRIMARY")
+              .setStyle(ButtonStyle.Primary)
           );
         }
 
         if (hasNext) {
           row.addComponents(
-            new discord.MessageButton()
+            new ButtonBuilder()
               .setCustomId("next")
               .setLabel("Next ▶")
-              .setStyle("PRIMARY")
+              .setStyle(ButtonStyle.Primary)
           );
         }
 
@@ -109,7 +109,6 @@ module.exports = {
       const message = await interaction.reply({
         embeds: [initialEmbed],
         components: currentPageToken ? [initialButtons] : [],
-        fetchReply: true,
       });
 
       if (!currentPageToken) return; // No next page available
@@ -180,11 +179,11 @@ module.exports = {
       });
 
     } catch (error) {
-      return new discord.MessageEmbed()
+      return new EmbedBuilder()
         .setTitle("Error")
-        .setColor("RED")
+        .setColor(0xFF0000)
         .setDescription("An unexpected error occurred")
-        .addField("Error:", error.message)
+        .addFields({ name: "Error:", value: error.message })
         .setTimestamp();
     }
   },

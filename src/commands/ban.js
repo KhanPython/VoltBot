@@ -1,4 +1,4 @@
-const discord = require("discord.js");
+const { EmbedBuilder, ApplicationCommandOptionType } = require("discord.js");
 const openCloud = require("./../openCloudAPI");
 
 module.exports = {
@@ -19,25 +19,25 @@ module.exports = {
       name: "userid",
       description: "The user identification",
       required: true,
-      type: discord.Constants.ApplicationCommandOptionTypes.NUMBER,
+      type: ApplicationCommandOptionType.Number,
     },
     {
       name: "reason",
       description: "Reason for the ban",
       required: true,
-      type: discord.Constants.ApplicationCommandOptionTypes.STRING,
+      type: ApplicationCommandOptionType.String,
     },
     {
       name: "duration",
       description: "The duration to ban the user (optional - e.g., '7d', '2m', '1y' for days, months, years)",
       required: false,
-      type: discord.Constants.ApplicationCommandOptionTypes.STRING,
+      type: ApplicationCommandOptionType.String,
     },
     {
       name: "excludealts",
       description: "Ban alternate accounts too (default: false)",
       required: false,
-      type: discord.Constants.ApplicationCommandOptionTypes.BOOLEAN,
+      type: ApplicationCommandOptionType.Boolean,
     },
   ],
 
@@ -64,9 +64,9 @@ module.exports = {
       const response = await openCloud.BanUser(userId, reason, duration, excludeAltAccounts);
 
       // Return embed response
-      return new discord.MessageEmbed()
+      return new EmbedBuilder()
         .setTitle(`Ban User: ${userId}`)
-        .setColor(response.success ? "GREEN" : "RED")
+        .setColor(response.success ? 0x00FF00 : 0xFF0000)
         .setDescription(
           response.success
             ? `Player has been banned until ${
@@ -74,26 +74,19 @@ module.exports = {
               }`
             : "Unable to ban the player"
         )
-        .addField("UserId:", userId.toString())
-        .addField("Ban Reason:", reason)
-        .addField(
-          "Ban Duration:",
-          `${duration == undefined ? "permanent" : duration}`
-        )
-        .addField(
-          "Exclude Alts:",
-          excludeAltAccounts ? "✅ Yes" : "❌ No"
-        )
-        .addField(
-          `${response.success ? "✅" : "❌"} Command execution status:`,
-          response.status
+        .addFields(
+          { name: "UserId:", value: userId.toString() },
+          { name: "Ban Reason:", value: reason },
+          { name: "Ban Duration:", value: `${duration == undefined ? "permanent" : duration}` },
+          { name: "Exclude Alts:", value: excludeAltAccounts ? "✅ Yes" : "❌ No" },
+          { name: `${response.success ? "✅" : "❌"} Command execution status:`, value: response.status }
         )
         .setTimestamp();
     } catch (error) {
       console.error("Error in ban command:", error);
-      return new discord.MessageEmbed()
+      return new EmbedBuilder()
         .setTitle("Error")
-        .setColor("RED")
+        .setColor(0xFF0000)
         .setDescription("An error occurred while processing the command")
         .setTimestamp();
     }
