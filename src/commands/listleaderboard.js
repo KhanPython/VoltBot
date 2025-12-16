@@ -84,6 +84,15 @@ module.exports = {
         if (page > 0) {
           row.addComponents(
             new ButtonBuilder()
+              .setCustomId("first")
+              .setLabel("⏮ First")
+              .setStyle(ButtonStyle.Primary)
+          );
+        }
+
+        if (page > 0) {
+          row.addComponents(
+            new ButtonBuilder()
               .setCustomId("prev")
               .setLabel("◀ Previous")
               .setStyle(ButtonStyle.Primary)
@@ -109,6 +118,7 @@ module.exports = {
       const message = await interaction.reply({
         embeds: [initialEmbed],
         components: currentPageToken ? [initialButtons] : [],
+        ephemeral: true,
       });
 
       if (!currentPageToken) return; // No next page available
@@ -124,7 +134,30 @@ module.exports = {
       collector.on("collect", async (i) => {
         await i.deferUpdate();
 
-        if (i.customId === "next" && currentPageToken) {
+        if (i.customId === "first") {
+          // Go back to first page
+          currentPage = 0;
+          currentPageToken = null;
+          previousPageTokens = [];
+
+          const firstResponse = await openCloud.ListOrderedDataStoreEntries(
+            leaderboardName,
+            scopeId
+          );
+
+          if (firstResponse.success) {
+            currentEntries = firstResponse.entries || [];
+            currentPageToken = firstResponse.nextPageToken || null;
+
+            const newEmbed = generatePageEmbed(currentPage, !!currentPageToken);
+            const newButtons = createButtons(currentPage, !!currentPageToken);
+
+            await message.edit({
+              embeds: [newEmbed],
+              components: previousPageTokens.length > 0 || currentPageToken ? [newButtons] : [],
+            });
+          }
+        } else if (i.customId === "next" && currentPageToken) {
           // Store current token to go back
           previousPageTokens.push(currentPageToken);
 
