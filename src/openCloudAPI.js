@@ -351,7 +351,7 @@ function getHttpErrorMessage(status) {
 function createDataStoreErrorResponse(operation, message, additionalFields = {}) {
   return {
     success: false,
-    status: `**Error:** ${message}`,
+    status: `Error: ${message}`,
     ...additionalFields,
   };
 }

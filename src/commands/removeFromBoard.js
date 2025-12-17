@@ -87,18 +87,17 @@ module.exports = {
       const embed = new EmbedBuilder()
         .setTitle(`Remove Leaderboard Entry`)
         .setColor(response.success ? 0x00FF00 : 0xFF0000)
-        .setDescription(
-          `**Experience:** ${universeInfo.name}\n\n${
-            response.success
-              ? `Entry successfully removed for user ${userId}`
-              : response.status
-          }`
-        )
+        .setDescription(`**Experience:** ${universeInfo.name}`)
         .addFields(
           { name: "UserId:", value: userId.toString() },
           { name: "Leaderboard Name:", value: leaderboardName },
           { name: "Key:", value: key || `${userId}` }
         )
+        .setFooter({
+          text: response.success
+            ? `Entry successfully removed for user ${userId}`
+            : response.status
+        })
         .setTimestamp();
       
       if (universeInfo.icon) {

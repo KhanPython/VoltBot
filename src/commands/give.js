@@ -67,18 +67,17 @@ module.exports = {
       const embed = new EmbedBuilder()
         .setTitle(`Give Currency to ${userId}`)
         .setColor(response.success ? 0x00FF00 : 0xFF0000)
-        .setDescription(
-          `**Experience:** ${universeInfo.name}\n\n${
-            response.success
-              ? `Successfully awarded ${amount} currency`
-              : response.status
-          }`
-        )
+        .setDescription(`**Experience:** ${universeInfo.name}`)
         .addFields(
           { name: "UserId:", value: userId.toString() },
           { name: "Amount Given:", value: amount.toString() },
           { name: "New Total:", value: newCurrency.toString() }
         )
+        .setFooter({
+          text: response.success
+            ? `Successfully awarded ${amount} currency`
+            : response.status
+        })
         .setTimestamp();
       
       if (universeInfo.icon) {

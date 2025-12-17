@@ -44,16 +44,15 @@ module.exports = {
       const embed = new EmbedBuilder()
         .setTitle(`Unban User: ${userId}`)
         .setColor(response.success ? 0x00FF00 : 0xFF0000)
-        .setDescription(
-          `**Experience:** ${universeInfo.name}\n\n${
-            response.success
-              ? `Player has been unbanned`
-              : response.status
-          }`
-        )
+        .setDescription(`**Experience:** ${universeInfo.name}`)
         .addFields(
           { name: "UserId:", value: userId.toString() }
         )
+        .setFooter({
+          text: response.success
+            ? "Player has been unbanned"
+            : response.status
+        })
         .setTimestamp();
       
       if (universeInfo.icon) {

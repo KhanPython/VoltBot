@@ -78,21 +78,20 @@ module.exports = {
       const embed = new EmbedBuilder()
         .setTitle(`Ban User: ${userId}`)
         .setColor(response.success ? 0x00FF00 : 0xFF0000)
-        .setDescription(
-          `**Experience:** ${universeInfo.name}\n\n${
-            response.success
-              ? response.expiresDate
-                ? `Player has been banned until ${response.expiresDate.toLocaleString()}`
-                : "Player has been banned permanently"
-              : response.status
-          }`
-        )
+        .setDescription(`**Experience:** ${universeInfo.name}`)
         .addFields(
           { name: "UserId:", value: userId.toString() },
           { name: "Ban Reason:", value: reason },
           { name: "Ban Duration:", value: `${duration == undefined ? "permanent" : duration}` },
           { name: "Exclude Alts:", value: excludeAltAccounts ? "✅ Yes" : "❌ No" }
         )
+        .setFooter({
+          text: response.success
+            ? response.expiresDate
+              ? `Player has been banned until ${response.expiresDate.toLocaleString()}`
+              : "Player has been banned permanently"
+            : response.status
+        })
         .setTimestamp();
       
       if (universeInfo.icon) {
