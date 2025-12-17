@@ -106,9 +106,9 @@ exports.RemovePlayerData = async function (userId, datastoreName = "player_curre
  * @param {string} key - The key to remove (optional, defaults to {userId})
  * @returns {Promise<{success: boolean, status: string}>}
  */
-exports.ListOrderedDataStoreEntries = async function (orderedDatastoreName, scopeId = "global", pageToken = null) {
+exports.ListOrderedDataStoreEntries = async function (orderedDatastoreName, scopeId = "global", pageToken = null, universeId = null) {
   try {
-    const universeId = parseInt(process.env.universeID);
+    universeId = universeId || parseInt(process.env.universeID);
     const apiKey = process.env.robloxAPIKey;
     
     // Construct the correct Open Cloud API path for listing ordered data stores
@@ -143,9 +143,9 @@ exports.ListOrderedDataStoreEntries = async function (orderedDatastoreName, scop
   }
 };
 
-exports.RemoveOrderedDataStoreData = async function (userId, orderedDatastoreName, key = null, scopeId = "global") {
+exports.RemoveOrderedDataStoreData = async function (userId, orderedDatastoreName, key = null, scopeId = "global", universeId = null) {
   try {
-    const universeId = parseInt(process.env.universeID);
+    universeId = universeId || parseInt(process.env.universeID);
     const apiKey = process.env.robloxAPIKey;
     const keyToRemove = key ? String(key) : String(userId);
     
@@ -186,7 +186,7 @@ exports.RemoveOrderedDataStoreData = async function (userId, orderedDatastoreNam
  * @param {string} scopeId - Scope ID (default: "global")
  * @returns {Promise<{exists: boolean, entry: Object|null, message: string}>}
  */
-exports.CheckOrderedDataStoreKey = async function (keyToFind, orderedDatastoreName, scopeId = "global") {
+exports.CheckOrderedDataStoreKey = async function (keyToFind, orderedDatastoreName, scopeId = "global", universeId = null) {
   try {
     let pageToken = null;
     let pageCount = 0;
@@ -194,7 +194,7 @@ exports.CheckOrderedDataStoreKey = async function (keyToFind, orderedDatastoreNa
     while (true) {
       pageCount++;
       
-      const response = await exports.ListOrderedDataStoreEntries(orderedDatastoreName, scopeId, pageToken);
+      const response = await exports.ListOrderedDataStoreEntries(orderedDatastoreName, scopeId, pageToken, universeId);
       
       if (!response.success) {
         return { exists: false, entry: null, message: `Error fetching page: ${response.status}` };
@@ -234,9 +234,9 @@ exports.CheckOrderedDataStoreKey = async function (keyToFind, orderedDatastoreNa
  * @param {boolean} excludeAltAccounts - Whether to ban alternate accounts (default: false)
  * @returns {Promise<{success: boolean, status: string, expiresDate: Date|null}>}
  */
-exports.BanUser = async function (userId, reason, duration, excludeAltAccounts = false) {
+exports.BanUser = async function (userId, reason, duration, excludeAltAccounts = false, universeId = null) {
   try {
-    const universeId = parseInt(process.env.universeID);
+    universeId = universeId || parseInt(process.env.universeID);
     let durationSeconds = null;
     let expiresDate = null;
     let durationString = null;
@@ -280,9 +280,9 @@ exports.BanUser = async function (userId, reason, duration, excludeAltAccounts =
  * @param {number} userId - The Roblox user ID
  * @returns {Promise<{success: boolean, status: string}>}
  */
-exports.UnbanUser = async function (userId) {
+exports.UnbanUser = async function (userId, universeId = null) {
   try {
-    const universeId = parseInt(process.env.universeID);
+    universeId = universeId || parseInt(process.env.universeID);
     const payload = { gameJoinRestriction: { active: false } };
     const url = `https://apis.roblox.com/cloud/v2/universes/${universeId}/user-restrictions/${userId}`;
 
@@ -410,4 +410,68 @@ function parseDuration(duration) {
 }
 
 exports.parseDuration = parseDuration;
+
+// ============================================
+// UNIVERSE/EXPERIENCE INFORMATION
+// ============================================
+
+/**
+ * Get the experience name and icon from a universe ID
+ * @param {number} universeId - The Roblox universe ID
+ * @returns {Promise<{success: boolean, name: string, icon: string|null, status: string}>}
+ */
+exports.GetUniverseName = async function (universeId) {
+  try {
+    if (!universeId) {
+      universeId = parseInt(process.env.universeID);
+    }
+    
+    // Use the games API directly with the universe ID
+    const detailsUrl = `https://games.roblox.com/v1/games?universeIds=${universeId}`;
+    const detailsResponse = await axios.get(detailsUrl);
+    
+    if (detailsResponse.data && detailsResponse.data.data && detailsResponse.data.data[0]) {
+      const gameData = detailsResponse.data.data[0];
+      const name = gameData.name || "Unknown Universe";
+      const rootPlaceId = gameData.rootPlaceId || "unknown";
+      const displayName = `${name} (${rootPlaceId})`;
+      
+      // Get icon from CDN using the universe ID
+      let icon = null;
+      try {
+        const iconUrl = `https://thumbnails.roblox.com/v1/games/icons?universeIds=${gameData.id}&size=512x512&format=Png&isCircular=false`;
+        const iconResponse = await axios.get(iconUrl);
+        
+        if (iconResponse.data && iconResponse.data.data && iconResponse.data.data[0]) {
+          icon = iconResponse.data.data[0].imageUrl || null;
+        }
+      } catch (iconError) {
+        console.error(`[DEBUG] Failed to fetch icon:`, iconError.message);
+      }
+      
+      return {
+        success: true,
+        name: displayName,
+        icon: icon,
+        status: "Successfully retrieved universe name"
+      };
+    }
+
+    // Fallback: return the ID if we can't fetch the name
+    return {
+      success: false,
+      name: `Universe ${universeId}`,
+      icon: null,
+      status: "Could not fetch universe name, using ID"
+    };
+  } catch (error) {
+    // Fallback: return the ID if there's an error
+    return {
+      success: false,
+      name: `Universe ${universeId}`,
+      icon: null,
+      status: `Error: ${error.message}`
+    };
+  }
+};
 

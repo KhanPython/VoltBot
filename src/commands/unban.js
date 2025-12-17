@@ -21,29 +21,46 @@ module.exports = {
       required: true,
       type: ApplicationCommandOptionType.Number,
     },
+    {
+      name: "universeid",
+      description: "Universe ID (optional - defaults to .env value)",
+      required: false,
+      type: ApplicationCommandOptionType.Number,
+    },
   ],
 
-  callback: async ({ user, args }) => {
-    const userId = parseInt(args[0]);
+  callback: async ({ user, args, interaction }) => {
+    const userId = interaction?.options?.getNumber("userid") || parseInt(args[0]);
+    const universeId = interaction?.options?.getNumber("universeid") || null;
 
     try {
+      // Get experience name
+      const universeInfo = await openCloud.GetUniverseName(universeId);
+      
       // Call Open Cloud Unban function
-      const response = await openCloud.UnbanUser(userId);
+      const response = await openCloud.UnbanUser(userId, universeId);
 
       // Return embed response
-      return new EmbedBuilder()
+      const embed = new EmbedBuilder()
         .setTitle(`Unban User: ${userId}`)
         .setColor(response.success ? 0x00FF00 : 0xFF0000)
         .setDescription(
-          response.success
-            ? `Player has been unbanned`
-            : "Unable to unban the player"
+          `**Experience:** ${universeInfo.name}\n\n${
+            response.success
+              ? `Player has been unbanned`
+              : response.status
+          }`
         )
         .addFields(
-          { name: "UserId:", value: userId.toString() },
-          { name: `${response.success ? "✅" : "❌"} Command execution status:`, value: response.status }
+          { name: "UserId:", value: userId.toString() }
         )
         .setTimestamp();
+      
+      if (universeInfo.icon) {
+        embed.setThumbnail(universeInfo.icon);
+      }
+      
+      return embed;
     } catch (error) {
       console.error("Error in unban command:", error);
       return new EmbedBuilder()

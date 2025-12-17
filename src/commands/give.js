@@ -27,11 +27,18 @@ module.exports = {
       required: true,
       type: ApplicationCommandOptionType.Number,
     },
+    {
+      name: "universeid",
+      description: "Universe ID (optional - defaults to .env value)",
+      required: false,
+      type: ApplicationCommandOptionType.Number,
+    },
   ],
 
-  callback: async ({ user, args }) => {
-    const userId = parseInt(args[0]);
-    const amount = parseInt(args[1]);
+  callback: async ({ user, args, interaction }) => {
+    const userId = interaction?.options?.getNumber("userid") || parseInt(args[0]);
+    const amount = interaction?.options?.getNumber("amount") || parseInt(args[1]);
+    const universeId = interaction?.options?.getNumber("universeid") || null;
 
     // Validate amount
     if (isNaN(amount) || amount <= 0) {
@@ -47,6 +54,9 @@ module.exports = {
         newCurrency = (currentResult.data.currency || 0) + amount;
       }
 
+      // Get experience name
+      const universeInfo = await openCloud.GetUniverseName(universeId);
+
       // Update currency in datastore
       const response = await openCloud.SetPlayerData(userId, {
         currency: newCurrency,
@@ -54,21 +64,28 @@ module.exports = {
       });
 
       // Return embed response
-      return new EmbedBuilder()
+      const embed = new EmbedBuilder()
         .setTitle(`Give Currency to ${userId}`)
         .setColor(response.success ? 0x00FF00 : 0xFF0000)
         .setDescription(
-          response.success
-            ? `Successfully awarded ${amount} currency`
-            : "Failed to award currency"
+          `**Experience:** ${universeInfo.name}\n\n${
+            response.success
+              ? `Successfully awarded ${amount} currency`
+              : response.status
+          }`
         )
         .addFields(
           { name: "UserId:", value: userId.toString() },
           { name: "Amount Given:", value: amount.toString() },
-          { name: "New Total:", value: newCurrency.toString() },
-          { name: `${response.success ? "✅" : "❌"} Command execution status:`, value: response.status }
+          { name: "New Total:", value: newCurrency.toString() }
         )
         .setTimestamp();
+      
+      if (universeInfo.icon) {
+        embed.setThumbnail(universeInfo.icon);
+      }
+      
+      return embed;
     } catch (error) {
       console.error("Error in give command:", error);
       return new EmbedBuilder()

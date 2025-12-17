@@ -39,13 +39,21 @@ module.exports = {
       required: false,
       type: ApplicationCommandOptionType.Boolean,
     },
+    {
+      name: "universeid",
+      description: "Universe ID (optional - defaults to .env value)",
+      required: false,
+      type: ApplicationCommandOptionType.Number,
+    },
   ],
 
-  callback: async ({ user, args }) => {
-    const userId = parseInt(args[0]);
-    const reason = args[1];
-    const duration = args[2];
-    const excludeAltAccounts = args[3] === "true" || args[3] === true || false;
+  callback: async ({ user, args, interaction }) => {
+    // Use interaction.options for slash commands (more reliable)
+    const userId = interaction?.options?.getNumber("userid") || parseInt(args[0]);
+    const reason = interaction?.options?.getString("reason") || args[1];
+    const duration = interaction?.options?.getString("duration") || null;
+    const excludeAltAccounts = interaction?.options?.getBoolean("excludealts") || false;
+    const universeId = interaction?.options?.getNumber("universeid") || null;
 
     // Validate duration format if provided
     if (duration) {
@@ -60,28 +68,38 @@ module.exports = {
     }
 
     try {
+      // Get experience name
+      const universeInfo = await openCloud.GetUniverseName(universeId);
+      
       // Call Open Cloud Ban function
-      const response = await openCloud.BanUser(userId, reason, duration, excludeAltAccounts);
+      const response = await openCloud.BanUser(userId, reason, duration, excludeAltAccounts, universeId);
 
       // Return embed response
-      return new EmbedBuilder()
+      const embed = new EmbedBuilder()
         .setTitle(`Ban User: ${userId}`)
         .setColor(response.success ? 0x00FF00 : 0xFF0000)
         .setDescription(
-          response.success
-            ? `Player has been banned until ${
-                response.expiresDate ? response.expiresDate.toLocaleString() : "permanent"
-              }`
-            : "Unable to ban the player"
+          `**Experience:** ${universeInfo.name}\n\n${
+            response.success
+              ? response.expiresDate
+                ? `Player has been banned until ${response.expiresDate.toLocaleString()}`
+                : "Player has been banned permanently"
+              : response.status
+          }`
         )
         .addFields(
           { name: "UserId:", value: userId.toString() },
           { name: "Ban Reason:", value: reason },
           { name: "Ban Duration:", value: `${duration == undefined ? "permanent" : duration}` },
-          { name: "Exclude Alts:", value: excludeAltAccounts ? "✅ Yes" : "❌ No" },
-          { name: `${response.success ? "✅" : "❌"} Command execution status:`, value: response.status }
+          { name: "Exclude Alts:", value: excludeAltAccounts ? "✅ Yes" : "❌ No" }
         )
         .setTimestamp();
+      
+      if (universeInfo.icon) {
+        embed.setThumbnail(universeInfo.icon);
+      }
+      
+      return embed;
     } catch (error) {
       console.error("Error in ban command:", error);
       return new EmbedBuilder()

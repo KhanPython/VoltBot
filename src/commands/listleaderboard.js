@@ -1,4 +1,4 @@
-const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ApplicationCommandOptionType } = require("discord.js");
+const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ApplicationCommandOptionType, MessageFlags } = require("discord.js");
 const openCloud = require("../openCloudAPI");
 
 const ENTRIES_PER_PAGE = 10;
@@ -29,15 +29,25 @@ module.exports = {
       required: false,
       type: ApplicationCommandOptionType.String,
     },
+    {
+      name: "universeid",
+      description: "Universe ID (optional - defaults to .env value)",
+      required: false,
+      type: ApplicationCommandOptionType.Number,
+    },
   ],
 
   callback: async ({ user, args, interaction }) => {
-    const leaderboardName = args[0];
-    const scopeId = args[1] || "global";
+    const leaderboardName = interaction?.options?.getString("leaderboard") || args[0];
+    const scopeId = interaction?.options?.getString("scope") || "global";
+    const universeId = interaction?.options?.getNumber("universeid") || null;
 
     try {
+      // Get experience name
+      const universeInfo = await openCloud.GetUniverseName(universeId);
+      
       // Fetch first page to get total count
-      let response = await openCloud.ListOrderedDataStoreEntries(leaderboardName, scopeId);
+      let response = await openCloud.ListOrderedDataStoreEntries(leaderboardName, scopeId, null, universeId);
 
       if (!response.success) {
         return new EmbedBuilder()
@@ -52,12 +62,18 @@ module.exports = {
       let currentPage = 0;
 
       if (currentEntries.length === 0) {
-        return new EmbedBuilder()
+        const emptyEmbed = new EmbedBuilder()
           .setTitle(`Leaderboard Entries - ${leaderboardName}`)
           .setColor(0xFFFF00)
-          .setDescription("No entries found in this ordered datastore")
+          .setDescription(`**Experience:** ${universeInfo.name}\n\nNo entries found in this ordered datastore`)
           .addFields({ name: "Scope", value: scopeId })
           .setTimestamp();
+        
+        if (universeInfo.icon) {
+          emptyEmbed.setThumbnail(universeInfo.icon);
+        }
+        
+        return emptyEmbed;
       }
 
       // Function to generate page embed
@@ -68,13 +84,19 @@ module.exports = {
           entriesText += `${entryNumber}. **${entry.id}** - Value: ${entry.value}\n`;
         });
 
-        return new EmbedBuilder()
+        const embed = new EmbedBuilder()
           .setTitle(`Leaderboard Entries - ${leaderboardName}`)
           .setColor(0x00FF00)
-          .setDescription(entriesText || "No entries")
+          .setDescription(`**Experience:** ${universeInfo.name}\n\n${entriesText || "No entries"}`)
           .addFields({ name: "Scope", value: scopeId })
           .setFooter({ text: `Page ${page + 1}${hasNext ? " (more available)" : ""}` })
           .setTimestamp();
+        
+        if (universeInfo.icon) {
+          embed.setThumbnail(universeInfo.icon);
+        }
+        
+        return embed;
       };
 
       // Create pagination buttons
@@ -118,7 +140,7 @@ module.exports = {
       const message = await interaction.reply({
         embeds: [initialEmbed],
         components: currentPageToken ? [initialButtons] : [],
-        ephemeral: true,
+        flags: MessageFlags.Ephemeral,
       });
 
       if (!currentPageToken) return; // No next page available
@@ -142,7 +164,9 @@ module.exports = {
 
           const firstResponse = await openCloud.ListOrderedDataStoreEntries(
             leaderboardName,
-            scopeId
+            scopeId,
+            null,
+            universeId
           );
 
           if (firstResponse.success) {
@@ -165,7 +189,8 @@ module.exports = {
           const nextResponse = await openCloud.ListOrderedDataStoreEntries(
             leaderboardName,
             scopeId,
-            currentPageToken
+            currentPageToken,
+            universeId
           );
 
           if (nextResponse.success) {
@@ -189,7 +214,8 @@ module.exports = {
           const prevResponse = await openCloud.ListOrderedDataStoreEntries(
             leaderboardName,
             scopeId,
-            previousPageTokens.length > 0 ? previousPageTokens[previousPageTokens.length - 1] : null
+            previousPageTokens.length > 0 ? previousPageTokens[previousPageTokens.length - 1] : null,
+            universeId
           );
 
           if (prevResponse.success) {
