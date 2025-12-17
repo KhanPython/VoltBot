@@ -434,7 +434,7 @@ exports.GetUniverseName = async function (universeId) {
       const gameData = detailsResponse.data.data[0];
       const name = gameData.name || "Unknown Universe";
       const rootPlaceId = gameData.rootPlaceId || "unknown";
-      const displayName = `${name} (${rootPlaceId})`;
+      const displayName = `[${name} (${rootPlaceId})](https://www.roblox.com/games/${rootPlaceId})`;
       
       // Get icon from CDN using the universe ID
       let icon = null;
