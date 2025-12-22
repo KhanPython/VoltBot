@@ -1,6 +1,7 @@
 const { EmbedBuilder, ApplicationCommandOptionType, MessageFlags } = require("discord.js");
 const openCloud = require("./../openCloudAPI");
 const apiCache = require("./../utils/apiCache");
+const universeUtils = require("./../utils/universeUtils");
 
 module.exports = {
   category: "Economy",
@@ -56,6 +57,16 @@ module.exports = {
       if (!openCloud.hasApiKey(universeId)) {
         await interaction.reply({
           embeds: [apiCache.createMissingApiKeyEmbed(universeId)],
+          flags: MessageFlags.Ephemeral,
+        });
+        return;
+      }
+
+      // Verify universe exists
+      const universeCheck = await universeUtils.verifyUniverseExists(openCloud, universeId);
+      if (!universeCheck.success) {
+        await interaction.reply({
+          content: universeCheck.errorMessage,
           flags: MessageFlags.Ephemeral,
         });
         return;

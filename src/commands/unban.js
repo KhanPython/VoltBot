@@ -1,6 +1,7 @@
 const { EmbedBuilder, ApplicationCommandOptionType, MessageFlags } = require("discord.js");
 const openCloud = require("./../openCloudAPI");
 const apiCache = require("./../utils/apiCache");
+const universeUtils = require("./../utils/universeUtils");
 
 module.exports = {
   category: "Moderation",
@@ -49,8 +50,16 @@ module.exports = {
         return;
       }
 
-      // Get experience name
-      const universeInfo = await openCloud.GetUniverseName(universeId);
+      // Verify universe exists
+      const universeCheck = await universeUtils.verifyUniverseExists(openCloud, universeId);
+      if (!universeCheck.success) {
+        await interaction.reply({
+          content: universeCheck.errorMessage,
+          flags: MessageFlags.Ephemeral,
+        });
+        return;
+      }
+      const universeInfo = universeCheck.universeInfo;
       
       // Call Open Cloud Unban function
       const response = await openCloud.UnbanUser(userId, universeId);

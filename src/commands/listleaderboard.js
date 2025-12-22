@@ -1,6 +1,7 @@
 const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ApplicationCommandOptionType, MessageFlags } = require("discord.js");
 const openCloud = require("../openCloudAPI");
 const apiCache = require("../utils/apiCache");
+const universeUtils = require("../utils/universeUtils");
 
 const ENTRIES_PER_PAGE = 10;
 
@@ -58,8 +59,16 @@ module.exports = {
         return;
       }
 
-      // Get experience name
-      const universeInfo = await openCloud.GetUniverseName(universeId);
+      // Verify universe exists
+      const universeCheck = await universeUtils.verifyUniverseExists(openCloud, universeId);
+      if (!universeCheck.success) {
+        await interaction.reply({
+          content: universeCheck.errorMessage,
+          flags: MessageFlags.Ephemeral,
+        });
+        return;
+      }
+      const universeInfo = universeCheck.universeInfo;
       
       // Fetch first page to get total count
       let response = await openCloud.ListOrderedDataStoreEntries(leaderboardName, scopeId, null, universeId);
