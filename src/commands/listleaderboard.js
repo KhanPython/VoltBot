@@ -253,12 +253,16 @@ module.exports = {
       });
 
     } catch (error) {
-      return new EmbedBuilder()
-        .setTitle("Error")
-        .setColor(0xFF0000)
-        .setDescription("An unexpected error occurred")
-        .addFields({ name: "Error:", value: error.message })
-        .setTimestamp();
+      await interaction.reply({
+        embeds: [new EmbedBuilder()
+          .setTitle("Error")
+          .setColor(0xFF0000)
+          .setDescription("An unexpected error occurred")
+          .addFields({ name: "Error:", value: error.message })
+          .setTimestamp()
+        ],
+        flags: MessageFlags.Ephemeral,
+      });
     }
   },
 };

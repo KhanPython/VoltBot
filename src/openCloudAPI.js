@@ -9,16 +9,40 @@ const apiCache = require("./utils/apiCache");
 /**
  * Get a value from the player currency datastore
  * @param {number} userId - The Roblox user ID
+ * @param {number} universeId - The Roblox universe ID (required)
  * @param {string} datastoreName - Name of the datastore (default: "player_currency")
  * @returns {Promise<{success: boolean, data: any, status: string}>}
  */
-exports.GetPlayerData = async function (userId, datastoreName = "player_currency") {
+exports.GetPlayerData = async function (userId, universeId, datastoreName = "player_currency") {
   try {
-    const datastore = DataStoreService.GetDataStore(datastoreName);
-    const [data, keyInfo] = await datastore.GetAsync(`player_${userId}`);
-    return createSuccessResponse({ data, keyInfo });
+    if (!universeId) {
+      throw new Error("Universe ID is required");
+    }
+    const apiKey = apiCache.getApiKey(universeId);
+    if (!apiKey) {
+      throw new Error(`API key not found in cache for universe ${universeId}`);
+    }
+
+    // Use REST API directly instead of DataStoreService
+    const path = `universes/${universeId}/data-stores/${datastoreName}/scopes/global/entries`;
+    const url = new URL(`https://apis.roblox.com/cloud/v2/${path}`);
+    url.searchParams.append('entryKey', `player_${userId}`);
+
+    const response = await axios.get(url.toString(), {
+      headers: getApiHeaders(universeId),
+    });
+
+    if (response.status === 200) {
+      const data = response.data;
+      return createSuccessResponse({ data });
+    }
+    return createDataStoreErrorResponse("GetPlayerData", `Unexpected status: ${response.status}`, { data: null });
   } catch (error) {
-    console.error(`Error getting data for user ${userId}:`, error);
+    console.error(`Error getting data for user ${userId}:`, error.message);
+    // Return empty data rather than erroring out, in case entry doesn't exist
+    if (error.response?.status === 404) {
+      return createSuccessResponse({ data: null });
+    }
     return createDataStoreErrorResponse("GetPlayerData", error.message, { data: null });
   }
 };
@@ -27,16 +51,38 @@ exports.GetPlayerData = async function (userId, datastoreName = "player_currency
  * Set a value in the player currency datastore
  * @param {number} userId - The Roblox user ID
  * @param {any} value - The data to store
+ * @param {number} universeId - The Roblox universe ID (required)
  * @param {string} datastoreName - Name of the datastore (default: "player_currency")
  * @returns {Promise<{success: boolean, status: string}>}
  */
-exports.SetPlayerData = async function (userId, value, datastoreName = "player_currency") {
+exports.SetPlayerData = async function (userId, value, universeId, datastoreName = "player_currency") {
   try {
-    const datastore = DataStoreService.GetDataStore(datastoreName);
-    await datastore.SetAsync(`player_${userId}`, value);
-    return createSuccessResponse();
+    if (!universeId) {
+      throw new Error("Universe ID is required");
+    }
+    const apiKey = apiCache.getApiKey(universeId);
+    if (!apiKey) {
+      throw new Error(`API key not found in cache for universe ${universeId}`);
+    }
+
+    // Use REST API directly instead of DataStoreService
+    const path = `universes/${universeId}/data-stores/${datastoreName}/scopes/global/entries`;
+    const url = new URL(`https://apis.roblox.com/cloud/v2/${path}`);
+    url.searchParams.append('entryKey', `player_${userId}`);
+
+    const response = await axios.post(url.toString(), value, {
+      headers: {
+        ...getApiHeaders(universeId),
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (response.status === 200 || response.status === 201) {
+      return createSuccessResponse();
+    }
+    return createDataStoreErrorResponse("SetPlayerData", `Unexpected status: ${response.status}`);
   } catch (error) {
-    console.error(`Error setting data for user ${userId}:`, error);
+    console.error(`Error setting data for user ${userId}:`, error.message);
     return createDataStoreErrorResponse("SetPlayerData", error.message);
   }
 };
@@ -121,9 +167,7 @@ exports.ListOrderedDataStoreEntries = async function (orderedDatastoreName, scop
     }
     
     const response = await axios.get(url.toString(), {
-      headers: {
-        "x-api-key": apiKey,
-      },
+      headers: getApiHeaders(universeId),
     });
     
     // Check different possible response structures

@@ -27,7 +27,6 @@ exports.MessageSend = async function MessageSend(
         return { status: "**Error:** An unknown issue has occurred." };
     })
     .catch((err) => {
-      console.log(err.response.status);
       if (err.response.status == 401)
         return {
           status:

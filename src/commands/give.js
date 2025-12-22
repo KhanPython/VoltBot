@@ -62,7 +62,7 @@ module.exports = {
       }
 
       // Get current currency data
-      const currentResult = await openCloud.GetPlayerData(userId);
+      const currentResult = await openCloud.GetPlayerData(userId, universeId);
       
       let newCurrency = amount;
       if (currentResult.success && currentResult.data) {
@@ -76,7 +76,7 @@ module.exports = {
       const response = await openCloud.SetPlayerData(userId, {
         currency: newCurrency,
         lastUpdated: new Date().toISOString(),
-      });
+      }, universeId);
 
       // Return embed response
       const embed = new EmbedBuilder()
@@ -102,11 +102,15 @@ module.exports = {
       return embed;
     } catch (error) {
       console.error("Error in give command:", error);
-      return new EmbedBuilder()
-        .setTitle("Error")
-        .setColor(0xFF0000)
-        .setDescription(`Error: ${error.message}`)
-        .setTimestamp();
+      await interaction.reply({
+        embeds: [new EmbedBuilder()
+          .setTitle("Error")
+          .setColor(0xFF0000)
+          .setDescription(`Error: ${error.message}`)
+          .setTimestamp()
+        ],
+        flags: MessageFlags.Ephemeral,
+      });
     }
   },
 };

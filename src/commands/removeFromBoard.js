@@ -73,8 +73,6 @@ module.exports = {
       
       // First check if the key exists in the datastore
       const keyToCheck = key || `${userId}`;
-      console.log(`[INFO] Checking if key exists: ${keyToCheck}`);
-      
       const checkResult = await openCloud.CheckOrderedDataStoreKey(keyToCheck, leaderboardName, "global", universeId);
       
       if (!checkResult.exists) {
@@ -122,12 +120,16 @@ module.exports = {
       
       return embed;
     } catch (error) {
-      return new EmbedBuilder()
-        .setTitle("Error")
-        .setColor(0xFF0000)
-        .setDescription("An unexpected error occurred")
-        .addField("Error:", error.message)
-        .setTimestamp();
+      await interaction.reply({
+        embeds: [new EmbedBuilder()
+          .setTitle("Error")
+          .setColor(0xFF0000)
+          .setDescription("An unexpected error occurred")
+          .addField("Error:", error.message)
+          .setTimestamp()
+        ],
+        flags: MessageFlags.Ephemeral,
+      });
     }
   },
 };

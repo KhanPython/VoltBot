@@ -77,11 +77,15 @@ module.exports = {
       return embed;
     } catch (error) {
       console.error("Error in unban command:", error);
-      return new EmbedBuilder()
-        .setTitle("Error")
-        .setColor(0xFF0000)
-        .setDescription(`Error: ${error.message}`)
-        .setTimestamp();
+      await interaction.reply({
+        embeds: [new EmbedBuilder()
+          .setTitle("Error")
+          .setColor(0xFF0000)
+          .setDescription(`Error: ${error.message}`)
+          .setTimestamp()
+        ],
+        flags: MessageFlags.Ephemeral,
+      });
     }
   },
 };

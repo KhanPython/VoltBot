@@ -35,31 +35,59 @@ module.exports = {
 
     // Validate universeId
     if (!universeId || isNaN(universeId)) {
-      return {
+      await interaction.reply({
         content: "❌ Invalid Universe ID. Please provide a valid number.",
-        ephemeral: true,
-      };
+        flags: MessageFlags.Ephemeral,
+      });
+      return;
     }
 
     // Validate API key (basic check - should be a string with some content)
     if (!apiKey || apiKey.trim().length === 0) {
-      return {
+      await interaction.reply({
         content: "❌ Invalid API key. Please provide a non-empty key.",
-        ephemeral: true,
-      };
+        flags: MessageFlags.Ephemeral,
+      });
+      return;
     }
 
     try {
-      // Store the API key in cache
+      // Store the API key in cache FIRST
       openCloud.setApiKey(universeId, apiKey);
 
-      // Try to verify the API key by fetching universe info
-      const universeInfo = await openCloud.GetUniverseName(universeId);
+      // Then try to verify by fetching universe info (public API - doesn't validate the API key)
+      let universeInfo;
+      try {
+        universeInfo = await openCloud.GetUniverseName(universeId);
+      } catch (verifyError) {
+        // API key is stored, but verification of universe info failed
+        console.error("Universe verification failed:", verifyError.message);
+        universeInfo = { name: `Universe ${universeId}`, icon: null };
+      }
+
+      // Validate the API key by trying to access a Cloud API endpoint (doesn't require a specific datastore to exist)
+      try {
+        const axios = require("axios");
+        const testUrl = `https://apis.roblox.com/cloud/v2/universes/${universeId}/data-stores/dummy/scopes/global/entries/test`;
+        const response = await axios.get(testUrl, {
+          headers: {
+            "x-api-key": apiKey,
+          },
+          validateStatus: function (status) {
+            // Accept any status that isn't an auth error
+            return status !== 401 && status !== 403;
+          },
+        });
+      } catch (apiKeyError) {
+        // Clear the key if there was an auth error
+        openCloud.clearApiKey(universeId);
+        throw new Error("API key is invalid or unauthorized for this universe");
+      }
 
       const embed = new EmbedBuilder()
-        .setTitle("✅ API Key Configured")
+        .setTitle("API Key Configured")
         .setColor(0x00FF00)
-        .setDescription(`API key for universe ${universeId} has been cached for this session.`)
+        .setDescription(`API key for universe ${universeId} has been cached in the bot's memory.`)
         .addFields(
           { name: "Universe ID:", value: universeId.toString() },
           { name: "Experience:", value: universeInfo.name || "Unknown" }
@@ -73,13 +101,15 @@ module.exports = {
         embed.setThumbnail(universeInfo.icon);
       }
 
-      return embed;
+      await interaction.reply({
+        embeds: [embed],
+        flags: MessageFlags.Ephemeral,
+      });
     } catch (error) {
-      console.error("Error setting API key:", error);
-      return {
-        content: `❌ Error: ${error.message}. Please verify your API key is correct.`,
-        ephemeral: true,
-      };
+      await interaction.reply({
+        content: `❌ Error: ${error.message}`,
+        flags: MessageFlags.Ephemeral,
+      });
     }
   },
 };
