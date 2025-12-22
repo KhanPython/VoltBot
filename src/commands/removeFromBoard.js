@@ -1,5 +1,6 @@
-const { EmbedBuilder, ApplicationCommandOptionType } = require("discord.js");
+const { EmbedBuilder, ApplicationCommandOptionType, MessageFlags } = require("discord.js");
 const openCloud = require("../openCloudAPI");
+const apiCache = require("../utils/apiCache");
 
 module.exports = {
   category: "Moderation",
@@ -10,8 +11,8 @@ module.exports = {
 
   permissions: ["ADMINISTRATOR"],
   ephemeral: false,
-  minArgs: 2,
-  expectedArgs: "<userId> <leaderboardName> [key]",
+  minArgs: 3,
+  expectedArgs: "<userId> <leaderboardName> <universeId> [key]",
   guildOnly: true,
 
   options: [
@@ -28,30 +29,45 @@ module.exports = {
       type: ApplicationCommandOptionType.String,
     },
     {
+      name: "universeid",
+      description: "Universe ID (required)",
+      required: true,
+      type: ApplicationCommandOptionType.Number,
+    },
+    {
       name: "key",
       description: "The specific key to remove (optional, defaults to {userId})",
       required: false,
       type: ApplicationCommandOptionType.String,
-    },
-    {
-      name: "universeid",
-      description: "Universe ID (optional - defaults to .env value)",
-      required: false,
-      type: ApplicationCommandOptionType.Number,
     },
   ],
 
   callback: async ({ user, args, interaction }) => {
     const userId = interaction?.options?.getNumber("userid") || parseInt(args[0]);
     const leaderboardName = interaction?.options?.getString("leaderboard") || args[1];
-    const key = interaction?.options?.getString("key") || null;
-    const universeId = interaction?.options?.getNumber("universeid") || null;
+    const universeId = interaction?.options?.getNumber("universeid") || parseInt(args[2]);
+    const key = interaction?.options?.getString("key") || args[3] || null;
 
+    // Validate userId
     if (isNaN(userId)) {
       return "Invalid user ID. Please provide a valid number.";
     }
 
+    // Validate universeId
+    if (!universeId || isNaN(universeId)) {
+      return "Please provide a valid Universe ID.";
+    }
+
     try {
+      // Check if API key is cached, if not prompt user
+      if (!openCloud.hasApiKey(universeId)) {
+        await interaction.reply({
+          embeds: [apiCache.createMissingApiKeyEmbed(universeId)],
+          flags: MessageFlags.Ephemeral,
+        });
+        return;
+      }
+
       // Get experience name
       const universeInfo = await openCloud.GetUniverseName(universeId);
       

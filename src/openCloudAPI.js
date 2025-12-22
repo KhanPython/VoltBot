@@ -1,11 +1,6 @@
 const axios = require("axios").default;
 const { OpenCloud, DataStoreService } = require("rbxcloud");
-
-// Configure OpenCloud with environment variables
-OpenCloud.Configure({
-  DataStoreService: process.env.robloxAPIKey,
-  UniverseId: parseInt(process.env.universeID),
-});
+const apiCache = require("./utils/apiCache");
 
 // ============================================
 // DATA STORE OPERATIONS
@@ -108,8 +103,13 @@ exports.RemovePlayerData = async function (userId, datastoreName = "player_curre
  */
 exports.ListOrderedDataStoreEntries = async function (orderedDatastoreName, scopeId = "global", pageToken = null, universeId = null) {
   try {
-    universeId = universeId || parseInt(process.env.universeID);
-    const apiKey = process.env.robloxAPIKey;
+    if (!universeId) {
+      throw new Error("Universe ID is required");
+    }
+    const apiKey = apiCache.getApiKey(universeId);
+    if (!apiKey) {
+      throw new Error(`API key not found in cache for universe ${universeId}`);
+    }
     
     // Construct the correct Open Cloud API path for listing ordered data stores
     const path = `universes/${universeId}/ordered-data-stores/${orderedDatastoreName}/scopes/${scopeId}/entries`;
@@ -145,8 +145,13 @@ exports.ListOrderedDataStoreEntries = async function (orderedDatastoreName, scop
 
 exports.RemoveOrderedDataStoreData = async function (userId, orderedDatastoreName, key = null, scopeId = "global", universeId = null) {
   try {
-    universeId = universeId || parseInt(process.env.universeID);
-    const apiKey = process.env.robloxAPIKey;
+    if (!universeId) {
+      throw new Error("Universe ID is required");
+    }
+    const apiKey = apiCache.getApiKey(universeId);
+    if (!apiKey) {
+      throw new Error(`API key not found in cache for universe ${universeId}`);
+    }
     const keyToRemove = key ? String(key) : String(userId);
     
     // Use POST to set value to 0 instead of DELETE (DELETE not supported for ordered datastores)
@@ -157,7 +162,7 @@ exports.RemoveOrderedDataStoreData = async function (userId, orderedDatastoreNam
     const payload = { value: 0 };
     
     const response = await axios.post(url.toString(), payload, {
-      headers: getApiHeaders(),
+      headers: getApiHeaders(universeId),
     });
     
     if (response.status === 200) {
@@ -236,7 +241,9 @@ exports.CheckOrderedDataStoreKey = async function (keyToFind, orderedDatastoreNa
  */
 exports.BanUser = async function (userId, reason, duration, excludeAltAccounts = false, universeId = null) {
   try {
-    universeId = universeId || parseInt(process.env.universeID);
+    if (!universeId) {
+      throw new Error("Universe ID is required");
+    }
     let durationSeconds = null;
     let expiresDate = null;
     let durationString = null;
@@ -261,7 +268,7 @@ exports.BanUser = async function (userId, reason, duration, excludeAltAccounts =
     }
 
     const url = `https://apis.roblox.com/cloud/v2/universes/${universeId}/user-restrictions/${userId}`;
-    const response = await axios.patch(url, payload, { headers: getApiHeaders() });
+    const response = await axios.patch(url, payload, { headers: getApiHeaders(universeId) });
 
     if (response.status === 200) {
       return createSuccessResponse({ expiresDate });
@@ -282,11 +289,13 @@ exports.BanUser = async function (userId, reason, duration, excludeAltAccounts =
  */
 exports.UnbanUser = async function (userId, universeId = null) {
   try {
-    universeId = universeId || parseInt(process.env.universeID);
+    if (!universeId) {
+      throw new Error("Universe ID is required");
+    }
     const payload = { gameJoinRestriction: { active: false } };
     const url = `https://apis.roblox.com/cloud/v2/universes/${universeId}/user-restrictions/${userId}`;
 
-    const response = await axios.patch(url, payload, { headers: getApiHeaders() });
+    const response = await axios.patch(url, payload, { headers: getApiHeaders(universeId) });
 
     if (response.status === 200) {
       return createSuccessResponse();
@@ -312,11 +321,16 @@ exports.UnbanUser = async function (userId, universeId = null) {
 
 /**
  * Get API headers with authentication
+ * @param {number} universeId - The Roblox universe ID (required to get correct API key)
  * @returns {Object} Headers object with API key
  */
-function getApiHeaders() {
+function getApiHeaders(universeId) {
+  const apiKey = apiCache.getApiKey(universeId);
+  if (!apiKey) {
+    throw new Error(`API key not found in cache for universe ${universeId}. Use /setapikey command to set it.`);
+  }
   return {
-    "x-api-key": process.env.robloxAPIKey,
+    "x-api-key": apiKey,
     "Content-Type": "application/json",
   };
 }
@@ -423,7 +437,7 @@ exports.parseDuration = parseDuration;
 exports.GetUniverseName = async function (universeId) {
   try {
     if (!universeId) {
-      universeId = parseInt(process.env.universeID);
+      throw new Error("Universe ID is required");
     }
     
     // Use the games API directly with the universe ID
@@ -474,4 +488,15 @@ exports.GetUniverseName = async function (universeId) {
     };
   }
 };
+
+// ============================================
+// API CACHE MANAGEMENT
+// ============================================
+
+// Export cache management functions
+exports.setApiKey = apiCache.setApiKey;
+exports.getApiKey = apiCache.getApiKey;
+exports.hasApiKey = apiCache.hasApiKey;
+exports.clearApiKey = apiCache.clearApiKey;
+exports.getCachedUniverseIds = apiCache.getCachedUniverseIds;
 

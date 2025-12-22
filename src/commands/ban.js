@@ -1,5 +1,6 @@
-const { EmbedBuilder, ApplicationCommandOptionType } = require("discord.js");
+const { EmbedBuilder, ApplicationCommandOptionType, MessageFlags } = require("discord.js");
 const openCloud = require("./../openCloudAPI");
+const apiCache = require("./../utils/apiCache");
 
 module.exports = {
   category: "Moderation",
@@ -10,8 +11,8 @@ module.exports = {
 
   permissions: ["ADMINISTRATOR"],
   ephemeral: false,
-  minArgs: 2,
-  expectedArgs: "<userId> <reason> [duration] [excludealts]",
+  minArgs: 3,
+  expectedArgs: "<userId> <reason> <universeId> [duration] [excludealts]",
   guildOnly: true,
 
   options: [
@@ -28,6 +29,12 @@ module.exports = {
       type: ApplicationCommandOptionType.String,
     },
     {
+      name: "universeid",
+      description: "Universe ID (required)",
+      required: true,
+      type: ApplicationCommandOptionType.Number,
+    },
+    {
       name: "duration",
       description: "The duration to ban the user (optional - e.g., '7d', '2m', '1y' for days, months, years)",
       required: false,
@@ -39,21 +46,20 @@ module.exports = {
       required: false,
       type: ApplicationCommandOptionType.Boolean,
     },
-    {
-      name: "universeid",
-      description: "Universe ID (optional - defaults to .env value)",
-      required: false,
-      type: ApplicationCommandOptionType.Number,
-    },
   ],
 
   callback: async ({ user, args, interaction }) => {
     // Use interaction.options for slash commands (more reliable)
     const userId = interaction?.options?.getNumber("userid") || parseInt(args[0]);
     const reason = interaction?.options?.getString("reason") || args[1];
-    const duration = interaction?.options?.getString("duration") || null;
+    const universeId = interaction?.options?.getNumber("universeid") || parseInt(args[2]);
+    const duration = interaction?.options?.getString("duration") || args[3] || null;
     const excludeAltAccounts = interaction?.options?.getBoolean("excludealts") || false;
-    const universeId = interaction?.options?.getNumber("universeid") || null;
+
+    // Validate universeId
+    if (!universeId || isNaN(universeId)) {
+      return "Please provide a valid Universe ID.";
+    }
 
     // Validate duration format if provided
     if (duration) {
@@ -68,6 +74,15 @@ module.exports = {
     }
 
     try {
+      // Check if API key is cached, if not prompt user
+      if (!openCloud.hasApiKey(universeId)) {
+        await interaction.reply({
+          embeds: [apiCache.createMissingApiKeyEmbed(universeId)],
+          flags: MessageFlags.Ephemeral,
+        });
+        return;
+      }
+
       // Get experience name
       const universeInfo = await openCloud.GetUniverseName(universeId);
       
@@ -104,7 +119,7 @@ module.exports = {
       return new EmbedBuilder()
         .setTitle("Error")
         .setColor(0xFF0000)
-        .setDescription("An error occurred while processing the command")
+        .setDescription(`Error: ${error.message}`)
         .setTimestamp();
     }
   },

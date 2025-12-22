@@ -1,5 +1,6 @@
 const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ApplicationCommandOptionType, MessageFlags } = require("discord.js");
 const openCloud = require("../openCloudAPI");
+const apiCache = require("../utils/apiCache");
 
 const ENTRIES_PER_PAGE = 10;
 
@@ -12,8 +13,8 @@ module.exports = {
 
   permissions: ["ADMINISTRATOR"],
   ephemeral: false,
-  minArgs: 1,
-  expectedArgs: "<leaderboardName> [scope]",
+  minArgs: 2,
+  expectedArgs: "<leaderboardName> <universeId> [scope]",
   guildOnly: true,
 
   options: [
@@ -24,25 +25,39 @@ module.exports = {
       type: ApplicationCommandOptionType.String,
     },
     {
+      name: "universeid",
+      description: "Universe ID (required)",
+      required: true,
+      type: ApplicationCommandOptionType.Number,
+    },
+    {
       name: "scope",
       description: "The datastore scope (default: global)",
       required: false,
       type: ApplicationCommandOptionType.String,
     },
-    {
-      name: "universeid",
-      description: "Universe ID (optional - defaults to .env value)",
-      required: false,
-      type: ApplicationCommandOptionType.Number,
-    },
   ],
 
   callback: async ({ user, args, interaction }) => {
     const leaderboardName = interaction?.options?.getString("leaderboard") || args[0];
-    const scopeId = interaction?.options?.getString("scope") || "global";
-    const universeId = interaction?.options?.getNumber("universeid") || null;
+    const universeId = interaction?.options?.getNumber("universeid") || parseInt(args[1]);
+    const scopeId = interaction?.options?.getString("scope") || args[2] || "global";
+
+    // Validate universeId
+    if (!universeId || isNaN(universeId)) {
+      return "Please provide a valid Universe ID.";
+    }
 
     try {
+      // Check if API key is cached, if not prompt user
+      if (!openCloud.hasApiKey(universeId)) {
+        await interaction.reply({
+          embeds: [apiCache.createMissingApiKeyEmbed(universeId)],
+          flags: MessageFlags.Ephemeral,
+        });
+        return;
+      }
+
       // Get experience name
       const universeInfo = await openCloud.GetUniverseName(universeId);
       
