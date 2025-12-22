@@ -24,7 +24,7 @@ client.on("clientReady", async () => {
     // Now load new commands
     new wokcommands(client, {
       commandsDir: path.join(__dirname, "commands"),
-      featuresDir: path.join(__dirname, "features"),
+      // featuresDir: path.join(__dirname, "features"),
       mongoUri: "",
     });
 
