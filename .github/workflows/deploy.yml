@@ -17,8 +17,9 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           envs: DISCORD_TOKEN
           script: |
-            export DISCORD_TOKEN="${{ secrets.DISCORD_TOKEN }}"
             cd ~/RoAdmin
+            echo "DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }}" > .env
+
             git pull origin master
             npm install --production
-            pm2 restart RoAdmin --watch
+            pm2 restart RoAdmin --update-env || pm2 start src/index.js --name "RoAdmin"
