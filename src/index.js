@@ -3,12 +3,11 @@ const { ReadableStream } = require("node:stream/web");
 globalThis.ReadableStream = ReadableStream;
 
 //Modules
-require("dotenv").config();
 const discord = require("discord.js");
 const wokcommands = require("wokcommands");
 const path = require("path");
 
-const discordToken = process.env.discordToken;
+const discordToken = process.env.DISCORD_TOKEN;
 
 const client = new discord.Client({
   intents: [discord.IntentsBitField.Flags.Guilds, discord.IntentsBitField.Flags.GuildMessages],
