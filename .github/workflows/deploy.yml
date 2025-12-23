@@ -15,9 +15,9 @@ jobs:
           host: ${{ secrets.REMOTE_HOST }}
           username: ${{ secrets.REMOTE_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          env:
-            DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
+          envs: DISCORD_TOKEN
           script: |
+            export DISCORD_TOKEN="${{ secrets.DISCORD_TOKEN }}"
             cd ~/RoAdmin
             git pull origin master
             npm install --production
