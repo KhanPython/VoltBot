@@ -18,7 +18,7 @@ jobs:
           envs: DISCORD_TOKEN
           script: |
             cd ~/RoAdmin
-            echo "DISCORD_TOKEN=${{ secrets.DISCORD_TOKEN }}" > .env
+            echo "DISCORD_TOKEN=\"${{ secrets.DISCORD_TOKEN }}\"" > .env
 
             git pull origin master
             npm install --production
